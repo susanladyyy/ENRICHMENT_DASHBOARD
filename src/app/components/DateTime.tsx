@@ -28,7 +28,7 @@ export default function DateTime() {
 
     return (
         <div>
-            <p>{formattedTime}</p>
+            <p className="mt-2">{formattedTime}</p>
         </div>
     );
 }

@@ -5,6 +5,9 @@ export default function Dashboard() {
     <>
       <NavBar />
       <hr />
+      <div className="content">
+        
+      </div>
     </>
   );
 }

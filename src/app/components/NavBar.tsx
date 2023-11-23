@@ -21,10 +21,15 @@ export default function NavBar() {
                             /> 
                         </Link>
                         </div>
-                        <div className="flex space-x-4">
+                        <div className="flex space-x-10">
                             <DateTime />
-                            <Link href="/">Home</Link>
-                            <Link href="/about">About</Link>
+                            <Link href="/">
+                                <Image
+                                src='/profile.svg'
+                                alt="Default Profile"
+                                width={35}
+                                height={35} />
+                            </Link>
                         </div>
                     </div>
                 </div>
