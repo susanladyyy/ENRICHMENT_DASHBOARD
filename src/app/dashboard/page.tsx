@@ -53,12 +53,12 @@ export default function Dashboard() {
   };
 
   const legendColors = [
-    "#ff0000",
-    "#00ff00",
-    "#0000ff",
+    "#079bde",
+    "#d12318",
+    "#f08700",
     "#ffff00",
     "#ff00ff",
-    "#00ffff",
+    "#69bcea",
   ];
 
   return (
@@ -81,12 +81,17 @@ export default function Dashboard() {
           <div className="w-full">
             {campusData && (
               <div className="flex flex-row gap-x-[2vh] pt-[2vh]">
-                {Object.entries(campusData).map(([campus, count]) => (
+                {[
+                  "Binus Alam Sutera",
+                  "Binus Kemanggisan",
+                  "Binus Bandung",
+                  "Binus Malang",
+                ].map((campus) => (
                   <div
                     className="w-1/4 rounded-xl bg-white px-[2vw] py-[2vh] flex flex-col justify-center items-center text-center"
                     key={campus}
                   >
-                    <p className="text-xl">{count}</p>
+                    <p className="text-xl">{campusData[campus] || "-"}</p>
                     <p className="text-md font-semibold">{campus}</p>
                   </div>
                 ))}
@@ -164,8 +169,7 @@ export default function Dashboard() {
                     <XAxis dataKey="category" />
                     <YAxis />
                     <Tooltip />
-                    <Legend />
-                    <Bar dataKey="count" fill="#8884d8" />
+                    <Bar dataKey="count" fill="#079bde" />
                   </BarChart>
                 </div>
               </div>
