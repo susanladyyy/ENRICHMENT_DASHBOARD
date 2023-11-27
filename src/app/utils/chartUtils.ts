@@ -1,8 +1,11 @@
 // chartUtils.ts
 
 import { InternshipData } from "../models/InternshipData";
+import { GpaChartData } from "../types/ChartData";
 
-export const countByTrack = (data: InternshipData[]) => {
+export const countByTrack = (
+  data: InternshipData[]
+): Record<string, number> => {
   const trackCounts = {};
 
   data.forEach((item) => {
@@ -13,7 +16,7 @@ export const countByTrack = (data: InternshipData[]) => {
   return trackCounts;
 };
 
-export const categorizeByGPA = (data: InternshipData[]) => {
+export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
   const categorizedData = {
     "<2.5": 0,
     "2.5-3": 0,
@@ -35,4 +38,17 @@ export const categorizeByGPA = (data: InternshipData[]) => {
     category,
     count: categorizedData[category],
   }));
+};
+
+export const countByCampus = (
+  data: InternshipData[]
+): Record<string, number> => {
+  const campusCounts: Record<string, number> = {};
+
+  data.forEach((item) => {
+    const campus = item.CAMPUS;
+    campusCounts[campus] = (campusCounts[campus] || 0) + 1;
+  });
+
+  return campusCounts;
 };

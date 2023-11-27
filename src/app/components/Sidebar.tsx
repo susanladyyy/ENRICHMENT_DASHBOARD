@@ -27,7 +27,7 @@ const Sidebar = () => {
 
       {/* Menu items */}
       <div className="py-[3vh]">
-        <Link href="/">
+        <Link href="/dashboard">
           <div className="menu-container">
             <div
               className={`menu-item ${
@@ -43,12 +43,14 @@ const Sidebar = () => {
 
       {/* Logout */}
       <div className="logout-container">
-        <div
-          className="menu-item logout text-black"
-          onClick={() => handleMenuClick("logout")}
-        >
-          Logout
-        </div>
+        <Link href="/">
+          <div
+            className="menu-item logout"
+            onClick={() => handleMenuClick("logout")}
+          >
+            Logout
+          </div>
+        </Link>
       </div>
 
       {/* Add styles for the sidebar */}
@@ -72,6 +74,7 @@ const Sidebar = () => {
         }
 
         .menu-item {
+          color: black;
           padding: 10px 15px;
           cursor: pointer;
           transition: background-color 0.3s;
@@ -84,6 +87,7 @@ const Sidebar = () => {
 
         .menu-item.active {
           background-color: #079bde;
+          color: white;
           font-weight: bold;
         }
 

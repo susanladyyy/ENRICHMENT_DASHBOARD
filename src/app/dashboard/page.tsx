@@ -15,13 +15,23 @@ import {
   Tooltip,
 } from "recharts";
 import { InternshipData } from "../models/InternshipData";
-import { categorizeByGPA, countByTrack } from "../utils/chartUtils";
+import {
+  categorizeByGPA,
+  countByCampus,
+  countByTrack,
+} from "../utils/chartUtils";
 import Sidebar from "../components/Sidebar";
+import {
+  CampusChartData,
+  GpaChartData,
+  TrackChartData,
+} from "../types/ChartData";
 
 export default function Dashboard() {
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
-  const [trackData, setTrackData] = useState<InternshipData[]>([]);
-  const [gpaData, setGpaData] = useState<InternshipData[]>([]);
+  const [trackData, setTrackData] = useState<TrackChartData[]>([]);
+  const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
+  const [campusData, setCampusData] = useState<Record<string, number>>();
 
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
@@ -37,6 +47,9 @@ export default function Dashboard() {
 
     const newGpaData = categorizeByGPA(data);
     setGpaData(newGpaData);
+
+    const campusCounts = countByCampus(data);
+    setCampusData(campusCounts);
   };
 
   const legendColors = [
@@ -53,7 +66,7 @@ export default function Dashboard() {
       <div className="w-1/6">
         <Sidebar />
       </div>
-      <div className="w-5/6 content bg-[#e1eef5] py-[3vh] px-[3vh]">
+      <div className="w-5/6 content bg-[#e1eef5] py-[3vh] px-[3vh] h-[100vh] overflow-scroll">
         <div className="py-[3vh] px-[3vw] bg-white flex rounded-xl">
           <div className="py-[3vh] flex flex-col gap-y-[3vh]">
             <div className="header bg-white">
@@ -66,75 +79,98 @@ export default function Dashboard() {
         </div>
         {uploadedData && uploadedData.length > 0 && (
           <div className="w-full">
-            <div className="w-full flex flex-row items-center py-[2vh] gap-x-[2vh]">
-              <div className="w-full rounded-xl bg-white flex justify-center items-center px-[3vw] py-[3vh]">
-                <PieChart width={400} height={400}>
-                  {/* Data for the pie chart */}
-                  <Pie
-                    data={trackData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={120}
-                    label
-                    dataKey="value"
+            {campusData && (
+              <div className="flex flex-row gap-x-[2vh] pt-[2vh]">
+                {Object.entries(campusData).map(([campus, count]) => (
+                  <div
+                    className="w-1/4 rounded-xl bg-white px-[2vw] py-[2vh] flex flex-col justify-center items-center text-center"
+                    key={campus}
                   >
-                    {/* Customizing the colors of each sector */}
-                    {trackData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-
-                  {/* Adding legend and tooltip */}
-                  <Legend
-                    content={({ payload }) => (
-                      <ul
-                        style={{
-                          listStyle: "none",
-                          padding: 0,
-                          display: "flex flex-wrap",
-                        }}
-                      >
-                        {payload.map((entry, index) => (
-                          <li
-                            key={`legend-${index}`}
-                            style={{
-                              marginRight: "20px",
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: "20px",
-                                height: "20px",
-                                backgroundColor: trackData[index].color,
-                                marginRight: "8px",
-                              }}
-                            />
-                            <span className="text-xs" style={{ color: "#000" }}>
-                              {entry.value}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  />
-                  <Tooltip />
-                </PieChart>
+                    <p className="text-xl">{count}</p>
+                    <p className="text-md font-semibold">{campus}</p>
+                  </div>
+                ))}
               </div>
-              <div className="w-full rounded-xl bg-white flex justify-center items-center px-[3vw] py-[3vh]">
-                {/* Recharts PieChart component */}
-                <BarChart width={400} height={400} data={gpaData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="category" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="count" fill="#8884d8" />
-                </BarChart>
+            )}
+            <div className="w-full flex flex-row items-center py-[2vh] gap-x-[2vh]">
+              <div className="w-full rounded-xl bg-white flex flex-col px-[3vw] py-[3vh]">
+                <h2 className="text-2xl font-semibold pb-[3vh]">
+                  Enrichment Track
+                </h2>
+                <div className="flex flex-col justify-center items-center">
+                  <PieChart width={400} height={400}>
+                    {/* Data for the pie chart */}
+                    <Pie
+                      data={trackData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={120}
+                      label
+                      dataKey="value"
+                    >
+                      {/* Customizing the colors of each sector */}
+                      {trackData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+
+                    {/* Adding legend and tooltip */}
+                    <Legend
+                      content={({ payload }) => (
+                        <ul
+                          style={{
+                            listStyle: "none",
+                            padding: 0,
+                            display: "flex flex-wrap",
+                          }}
+                        >
+                          {payload.map((entry, index) => (
+                            <li
+                              key={`legend-${index}`}
+                              style={{
+                                marginRight: "20px",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "20px",
+                                  height: "20px",
+                                  backgroundColor: trackData[index].color,
+                                  marginRight: "8px",
+                                }}
+                              />
+                              <span
+                                className="text-xs"
+                                style={{ color: "#000" }}
+                              >
+                                {entry.value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    />
+                    <Tooltip />
+                  </PieChart>
+                </div>
+              </div>
+              <div className="w-full rounded-xl flex flex-col bg-white px-[3vw] py-[3vh]">
+                <h2 className="text-2xl font-semibold pb-[3vh]">GPA Chart</h2>
+                <div className="flex flex-col justify-center items-center">
+                  <BarChart width={400} height={400} data={gpaData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="category" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#8884d8" />
+                  </BarChart>
+                </div>
               </div>
             </div>
-            <div className="w-full bg-white rounded-xl max-h-[60vh] overflow-scroll px-[2vw] py-[3vh]">
+            <div className="w-full bg-white rounded-xl max-h-[70vh] overflow-scroll px-[2vw] py-[3vh]">
               <h2 className="text-2xl font-semibold pb-[3vh]">Students Data</h2>
               <table className="table-auto border border-collapse">
                 <thead>
