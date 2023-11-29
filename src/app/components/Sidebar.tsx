@@ -1,16 +1,29 @@
+"use client"
 // Import necessary libraries
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { signOut } from 'next-auth/react';
+import { redirect, useRouter } from "next/navigation";
 
 // Sidebar component
 const Sidebar = () => {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("dashboard");
 
-  const handleMenuClick = (menu) => {
+  const handleMenuClick = async (menu) => {
     setActiveMenu(menu);
-    // Add logic for menu click, such as navigating to a different page
-  };
+  
+    // Add logic for menu click
+    if (menu === "logout") {
+      // Sign out and redirect to the login page without reloading
+      await signOut().then(() => {
+        router.replace('/');
+      });
+    } else {
+      // Handle other menu items
+    }
+  };  
 
   return (
     <div className="sidebar">

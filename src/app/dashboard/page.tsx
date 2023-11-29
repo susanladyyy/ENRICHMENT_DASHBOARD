@@ -26,8 +26,17 @@ import {
   GpaChartData,
   TrackChartData,
 } from "../types/ChartData";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 export default function Dashboard() {
+  const { status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      console.log('Not Logged In!')
+    }
+  })
+
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
   const [trackData, setTrackData] = useState<TrackChartData[]>([]);
   const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
@@ -60,6 +69,10 @@ export default function Dashboard() {
     "#ff00ff",
     "#69bcea",
   ];
+
+  if(status === "loading") {
+    redirect('/');
+  }
 
   return (
     <div className="flex flex-row">

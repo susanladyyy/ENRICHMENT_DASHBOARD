@@ -3,15 +3,29 @@
 import NavBar from "./components/NavBar";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from 'next-auth/react';
 
 export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = () => {
-    console.log("Logging in with:", { email, password });
-    router.push("/dashboard");
+  const handleLogin = async () => {
+    // Trigger NextAuth.js authentication
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false, // Prevent automatic redirection
+    });
+  
+    // Check the authentication result
+    if (result?.error) {
+      console.error('Authentication failed:', result.error);
+    } else {
+      // Authentication successful, handle redirection or other actions
+      console.log('Authentication successful:', result);
+      router.push('/dashboard');
+    }
   };
 
   return (
