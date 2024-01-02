@@ -41,6 +41,24 @@ export default function Dashboard() {
   const [trackData, setTrackData] = useState<TrackChartData[]>([]);
   const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
   const [campusData, setCampusData] = useState<Record<string, number>>();
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedVis, setSelectedVis] = useState("");
+
+  const handleSemesterChange = (event: any) => {
+    setSelectedSemester(event.target.value);
+  };
+
+  const handleAreaChange = (event: any) => {
+    setSelectedArea(event.target.value);
+  };
+
+  const handleVisChange = (event: any) => {
+    setSelectedVis(event.target.value);
+  };
+
+  console.log(trackData);
+  console.log(gpaData);
 
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
@@ -82,8 +100,37 @@ export default function Dashboard() {
       <div className="w-5/6 content bg-[#e1eef5] py-[3vh] px-[3vh] h-[100vh] overflow-scroll">
         <div className="py-[3vh] px-[3vw] bg-white flex rounded-xl">
           <div className="py-[3vh] flex flex-col gap-y-[3vh]">
-            <div className="header bg-white">
-              <p className="text-4xl font-bold">Dashboard</p>
+            <div className="header bg-white flex">
+              <p className="text-4xl font-bold mr-10">Dashboard</p>
+              
+                { /* semester */}
+                <div className="mr-5">
+                  <select
+                    id="semesterSelect"
+                    value={selectedSemester}
+                    onChange={handleSemesterChange}
+                    className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
+                  >
+                    <option value="">Select Semester</option>
+                    <option value="Semester(1)">Semester(1)</option>
+                    <option value="Semester(2)">Semester(2)</option>
+                  </select>
+                </div>
+
+                {/* campus area */}
+                <div className="mr-5">
+                  <select
+                    id="areaSelect"
+                    value={selectedArea}
+                    onChange={handleAreaChange}
+                    className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
+                  >
+                    <option value="">Select Area</option>
+                    <option value="Area(1)">Area(1)</option>
+                    <option value="Area(2)">Area(2)</option>
+                  </select>
+                </div>
+
             </div>
             <div>
               <Uploader onDataUpload={handleDataUpload} />
@@ -110,6 +157,19 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
+            {/* choose visualization */}
+            <div className="mr-5 mt-5">
+              <select
+                id="visSelect"
+                value={selectedVis}
+                onChange={handleVisChange}
+                className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
+              >
+                <option value="">Select Visualization</option>
+                <option value="Pie Chart">Pie Chart</option>
+                <option value="Bar Chart">Bar Chart</option>
+              </select>
+            </div>
             <div className="w-full flex flex-row items-center py-[2vh] gap-x-[2vh]">
               <div className="w-full rounded-xl bg-white flex flex-col px-[3vw] py-[3vh]">
                 <h2 className="text-2xl font-semibold pb-[3vh]">
