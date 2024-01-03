@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Uploader from "../components/Uploader";
 import {
   PieChart,
@@ -17,13 +17,17 @@ import {
 import { InternshipData } from "../models/InternshipData";
 import {
   categorizeByGPA,
+  categorizeByGPAPie,
   countByCampus,
   countByTrack,
+  countByTrackID,
 } from "../utils/chartUtils";
 import Sidebar from "../components/Sidebar";
 import {
   CampusChartData,
   GpaChartData,
+  GpaPieData,
+  TrackBarData,
   TrackChartData,
 } from "../types/ChartData";
 import { useSession } from "next-auth/react";
@@ -37,13 +41,27 @@ export default function Dashboard() {
     }
   })
 
+  const programs = ["Computer Science",
+  "Computer Science and Mathematics",
+  "Computer Science and Statistics",
+  "Cyber Security",
+  "Data Science",
+  "Game Application and Technology",
+  "Mobile Application and Technology"];
+
+  const statuses = ["Accepted", "Not Yet Accepted"];
+  const enrollments = ["Enrolled", "Not Yet Enrolled"];
+
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
   const [trackData, setTrackData] = useState<TrackChartData[]>([]);
+  const [trackBarData, setTrackBarData] = useState<TrackBarData[]>([]);
   const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
+  const [gpaPieData, setGpaPieData] = useState<GpaPieData[]>([]);
   const [campusData, setCampusData] = useState<Record<string, number>>();
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
-  const [selectedVis, setSelectedVis] = useState("");
+  const [selectedVis, setSelectedVis] = useState("Pie Chart");
+  const [selectedAcad, setSelectedAcad] = useState("Data Science");
 
   const handleSemesterChange = (event: any) => {
     setSelectedSemester(event.target.value);
@@ -57,20 +75,42 @@ export default function Dashboard() {
     setSelectedVis(event.target.value);
   };
 
-  console.log(trackData);
-  console.log(gpaData);
+  const handleAcadChange = (event: any) => {
+    setSelectedAcad(event.target.value);
+  };
+
+  const trackDictionary = trackBarData.reduce((acc, entry, index) => {
+    return {
+      ...acc,
+      [entry.category]: trackData[index % trackData.length]?.name || '',
+    };
+  }, {});
+  
+  console.log(trackDictionary);
 
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
 
     const newTrackData = Object.keys(countByTrack(data)).map(
       (track, index) => ({
-        name: track,
+track,
         value: countByTrack(data)[track],
         color: legendColors[index % legendColors.length],
       })
     );
     setTrackData(newTrackData);
+
+    const newTrackBarData = Object.keys(countByTrackID(data)).map(
+      (id, index) => ({
+        category: id,
+        count: countByTrackID(data)[id],
+        color: legendColors[index % legendColors.length],
+      })
+    );
+    setTrackBarData(newTrackBarData);
+    
+    const newGpaPieData = categorizeByGPAPie(data);
+    setGpaPieData(newGpaPieData);
 
     const newGpaData = categorizeByGPA(data);
     setGpaData(newGpaData);
@@ -91,6 +131,9 @@ export default function Dashboard() {
   if(status === "loading") {
     redirect('/');
   }
+
+  console.log(gpaPieData);
+  console.log(trackData);
 
   return (
     <div className="flex flex-row">
@@ -165,8 +208,7 @@ export default function Dashboard() {
                 onChange={handleVisChange}
                 className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
               >
-                <option value="">Select Visualization</option>
-                <option value="Pie Chart">Pie Chart</option>
+                <option value="Pie Chart" selected>Pie Chart</option>
                 <option value="Bar Chart">Bar Chart</option>
               </select>
             </div>
@@ -176,79 +218,178 @@ export default function Dashboard() {
                   Enrichment Track
                 </h2>
                 <div className="flex flex-col justify-center items-center">
-                  <PieChart width={400} height={400}>
-                    {/* Data for the pie chart */}
-                    <Pie
-                      data={trackData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={120}
-                      label
-                      dataKey="value"
-                    >
-                      {/* Customizing the colors of each sector */}
-                      {trackData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
+                  {selectedVis === "Bar Chart" && (
+                    <>
+                      <BarChart width={400} height={400} data={trackBarData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="category" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#d12318" />
+                      </BarChart>
+                      <div style={{ display: 'flex', flexDirection: 'column', marginLeft: '20px' }}>
+                        {Object.entries(trackDictionary).map(([key, value]: any) => (
+                          <div key={key}>
+                            <p>{key}: {value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
 
-                    {/* Adding legend and tooltip */}
-                    <Legend
-                      content={({ payload }) => (
-                        <ul
-                          style={{
-                            listStyle: "none",
-                            padding: 0,
-                            display: "flex flex-wrap",
-                          }}
-                        >
-                          {payload.map((entry, index) => (
-                            <li
-                              key={`legend-${index}`}
-                              style={{
-                                marginRight: "20px",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                            >
-                              <div
+                  {selectedVis === "Pie Chart" && (
+                    <PieChart width={400} height={400}>
+                      {/* Data for the pie chart */}
+                      <Pie
+                        data={trackData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label
+                        dataKey="value"
+                      >
+                        {/* Customizing the colors of each sector */}
+                        {trackData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+
+                      {/* Adding legend and tooltip */}
+                      <Legend
+                        content={({ payload }) => (
+                          <ul
+                            style={{
+                              listStyle: "none",
+                              padding: 0,
+                              display: "flex flex-wrap",
+                            }}
+                          >
+                            {payload.map((entry, index) => (
+                              <li
+                                key={`legend-${index}`}
                                 style={{
-                                  width: "20px",
-                                  height: "20px",
-                                  backgroundColor: trackData[index].color,
-                                  marginRight: "8px",
+                                  marginRight: "20px",
+                                  display: "flex",
+                                  alignItems: "center",
                                 }}
-                              />
-                              <span
-                                className="text-xs"
-                                style={{ color: "#000" }}
                               >
-                                {entry.value}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    />
-                    <Tooltip />
-                  </PieChart>
+                                <div
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: trackData[index].color,
+                                    marginRight: "8px",
+                                  }}
+                                />
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "#000" }}
+                                >
+                                  {entry.value}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      />
+                      <Tooltip />
+                    </PieChart>
+                  )}
                 </div>
               </div>
               <div className="w-full rounded-xl flex flex-col bg-white px-[3vw] py-[3vh]">
                 <h2 className="text-2xl font-semibold pb-[3vh]">GPA Chart</h2>
                 <div className="flex flex-col justify-center items-center">
-                  <BarChart width={400} height={400} data={gpaData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#079bde" />
-                  </BarChart>
+                  {selectedVis === "Pie Chart" && (
+                    <PieChart width={400} height={400}>
+                      {/* Data for the pie chart */}
+                      <Pie
+                        data={gpaPieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label
+                        dataKey="value"
+                      >
+                        {/* Customizing the colors of each sector */}
+                        {gpaPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+
+                      {/* Adding legend and tooltip */}
+                      <Legend
+                        content={({ payload }) => (
+                          <ul
+                            style={{
+                              listStyle: "none",
+                              padding: 0,
+                              display: "flex flex-wrap",
+                            }}
+                          >
+                            {payload.map((entry, index) => (
+                              <li
+                                key={`legend-${index}`}
+                                style={{
+                                  marginRight: "20px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: gpaPieData[index].color,  // Use gpaPieData instead of trackData
+                                    marginRight: "8px",
+                                  }}
+                                />
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "#000" }}
+                                >
+                                  {entry.value}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      />
+                      <Tooltip />
+                    </PieChart>
+                  )}
+                  
+                  {selectedVis === "Bar Chart" && (
+                    <BarChart width={400} height={400} data={gpaData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#079bde" />
+                    </BarChart>
+                  )}
+                  
                 </div>
               </div>
             </div>
             <div className="w-full bg-white rounded-xl max-h-[70vh] overflow-scroll px-[2vw] py-[3vh]">
               <h2 className="text-2xl font-semibold pb-[3vh]">Students Data</h2>
+              {/* choose visualization */}
+              <div className="mr-5 mt-5">
+                <select
+                  id="acadSelect"
+                  value={selectedAcad}
+                  onChange={handleAcadChange}
+                  className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2">
+                  <option value="select acad" selected>Select Academic Program</option>
+
+                  {programs.map((option, index) => (
+                    <option key={index} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <table className="table-auto border border-collapse">
                 <thead>
                   <tr>

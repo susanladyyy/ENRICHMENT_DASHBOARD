@@ -1,3 +1,4 @@
+import { statuses } from './status';
 import { users } from './user'
 import { PrismaClient } from '@prisma/client';
 
