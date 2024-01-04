@@ -53,6 +53,7 @@ export default function Dashboard() {
   const enrollments = ["Enrolled", "Not Yet Enrolled"];
 
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
+  const [filteredData, setFilteredData] = useState<InternshipData[]>([]);
   const [trackData, setTrackData] = useState<TrackChartData[]>([]);
   const [trackBarData, setTrackBarData] = useState<TrackBarData[]>([]);
   const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
@@ -61,7 +62,8 @@ export default function Dashboard() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedVis, setSelectedVis] = useState("Pie Chart");
-  const [selectedAcad, setSelectedAcad] = useState("Data Science");
+  const [selectedAcad, setSelectedAcad] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   const handleSemesterChange = (event: any) => {
     setSelectedSemester(event.target.value);
@@ -79,6 +81,10 @@ export default function Dashboard() {
     setSelectedAcad(event.target.value);
   };
 
+  const handleStatusChange = (event: any) => {
+    setSelectedStatus(event.target.value);
+  };
+
   const trackDictionary = trackBarData.reduce((acc, entry, index) => {
     return {
       ...acc,
@@ -93,7 +99,7 @@ export default function Dashboard() {
 
     const newTrackData = Object.keys(countByTrack(data)).map(
       (track, index) => ({
-track,
+        name: track,
         value: countByTrack(data)[track],
         color: legendColors[index % legendColors.length],
       })
@@ -134,6 +140,17 @@ track,
 
   console.log(gpaPieData);
   console.log(trackData);
+
+  useEffect(() => {
+    if (selectedAcad != "") {
+      const newFilteredData = uploadedData.filter(
+        (item) => item.ACADEMIC_PROGRAM === selectedAcad
+      );
+      setFilteredData(newFilteredData);
+    } else {
+      setFilteredData(uploadedData);
+    }
+  }, [selectedAcad, uploadedData]);
 
   return (
     <div className="flex flex-row">
@@ -380,8 +397,8 @@ track,
                   id="acadSelect"
                   value={selectedAcad}
                   onChange={handleAcadChange}
-                  className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2">
-                  <option value="select acad" selected>Select Academic Program</option>
+                  className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2 mr-2">
+                  <option value="" selected>Select Academic Program</option>
 
                   {programs.map((option, index) => (
                     <option key={index} value={option}>
@@ -459,7 +476,7 @@ track,
                   </tr>
                 </thead>
                 <tbody>
-                  {uploadedData.map((item, index) => (
+                  {filteredData.map((item, index) => (
                     <tr key={index}>
                       <td className="border border-zinc-400 px-2">
                         {item.BINUSIAN_ID}
