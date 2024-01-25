@@ -69,13 +69,60 @@ export default function Dashboard() {
   const [selectedEnrollment, setEnrollmentStatus] = useState("");
 
   const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Choose the number of items to display per page
+
+  const [sortOrder, setSortOrder] = useState({
+    field: "",
+    ascending: true,
+  });
+
+  const handleHeaderClick = (field: string) => {
+    if (sortOrder.field === field) {
+      setSortOrder({
+        field,
+        ascending: !sortOrder.ascending,
+      });
+    } else {
+      setSortOrder({
+        field,
+        ascending: true,
+      });
+    }
+    setCurrentPage(1);
+  };
+
+  const sortData = (data: InternshipData[]): InternshipData[] => {
+    const { field, ascending } = sortOrder;
+    if (field === "") {
+      return data;
+    }
+
+    const sortedData = [...data];
+    sortedData.sort((a, b) => {
+      const aValue = a[field];
+      const bValue = b[field];
+
+      if (aValue < bValue) {
+        return ascending ? -1 : 1;
+      } else if (aValue > bValue) {
+        return ascending ? 1 : -1;
+      } else {
+        return 0;
+      }
+    });
+
+    return sortedData.slice(indexOfFirstItem, indexOfLastItem);
+  };
 
   const handleFilterClick = () => {
     setShowFilterDialog(true);
+    setCurrentPage(1);
   };
 
   const handleCloseFilterDialog = () => {
     setShowFilterDialog(false);
+    setCurrentPage(1);
   };
 
   const handleSemesterChange = (event: any) => {
@@ -191,8 +238,32 @@ export default function Dashboard() {
       );
     }
 
+    // Sort data
+    newFilteredData = sortData(newFilteredData);
+
     setFilteredData(newFilteredData);
-  }, [selectedAcads, selectedStatus, selectedEnrollment, uploadedData]);
+  }, [
+    selectedAcads,
+    selectedStatus,
+    selectedEnrollment,
+    uploadedData,
+    sortOrder,
+  ]);
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  // Pagination controls
+  const handlePrevClick = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNextClick = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="flex flex-row">
@@ -451,7 +522,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="w-full bg-white rounded-xl max-h-[70vh] overflow-scroll px-[2vw] py-[3vh]">
+            <div className="w-full bg-white rounded-xl max-h-[90vh] overflow-scroll px-[2vw] py-[3vh]">
               <h2 className="text-2xl font-semibold">Students Data</h2>
               <div className="flex flex-row gap-x-1">
                 <div className="pt-[1vh] pb-[2vh]">
@@ -462,95 +533,140 @@ export default function Dashboard() {
                     Filter
                   </button>
                 </div>
-                {/* <div className="mr-5 mt-5 pb-[2vh]">
-                  <select
-                    id="acadSelect"
-                    value={selectedAcad}
-                    onChange={handleAcadChange}
-                    className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2 mr-2"
-                  >
-                    <option value="" selected>
-                      Select Academic Program
-                    </option>
-
-                    {programs.map((option, index) => (
-                      <option key={index} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div> */}
               </div>
               <table className="table-auto border border-collapse">
                 <thead>
                   <tr>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("BINUSIAN_ID")}
+                    >
                       BINUSIAN ID
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("STUDENT_ID")}
+                    >
                       STUDENT ID
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("STUDENT_NAME")}
+                    >
                       STUDENT NAME
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("ACADEMIC_PROGRAM_ID")}
+                    >
                       ACADEMIC PROGRAM ID
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("ACADEMIC_GROUP")}
+                    >
                       ACADEMIC GROUP
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("ACADEMIC_PROGRAM")}
+                    >
                       ACADEMIC PROGRAM
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("STUDENT_EMAIL")}
+                    >
                       STUDENT EMAIL
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("STUDENT_PHONE")}
+                    >
                       STUDENT PHONE
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("CAMPUS")}
+                    >
                       CAMPUS
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("TRACK_ID")}
+                    >
                       TRACK ID
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("TRACK")}
+                    >
                       TRACK
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("GPA")}
+                    >
                       GPA
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("TOTAL_SKS")}
+                    >
                       TOTAL SKS
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("STATUS")}
+                    >
                       STATUS
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("PARTNER_LECTURER")}
+                    >
                       PARTNER/LECTURER
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("POSITION_TOPIC")}
+                    >
                       POSITION/TOPIC
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("DURATION")}
+                    >
                       DURATION
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("JOB_START_DATE")}
+                    >
                       JOB START DATE
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("JOB_END_DATE")}
+                    >
                       JOB END DATE
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("WORK_SCHEMA")}
+                    >
                       WORK SCHEMA
                     </th>
-                    <th className="border border-zinc-400 min-w-full px-2">
+                    <th
+                      className="border border-zinc-400 min-w-full px-2 cursor-pointer"
+                      onClick={() => handleHeaderClick("ENROLLMENT")}
+                    >
                       ENROLLMENT
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredData.map((item, index) => (
+                  {currentItems.map((item, index) => (
                     <tr key={index}>
                       <td className="border border-zinc-400 px-2">
                         {item.BINUSIAN_ID}
@@ -619,6 +735,18 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
+              <div className="pagination-controls flex justify-center items-center gap-x-5 py-2">
+                <button onClick={handlePrevClick} disabled={currentPage === 1}>
+                  Previous
+                </button>
+                <span>{`Page ${currentPage} of ${totalPages}`}</span>
+                <button
+                  onClick={handleNextClick}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         )}
