@@ -67,10 +67,11 @@ export default function Dashboard() {
   const [selectedAcads, setSelectedAcads] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedEnrollment, setEnrollmentStatus] = useState("");
+  const [selectedGpaCategories, setSelectedGpaCategories] = useState([]);
 
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Choose the number of items to display per page
+  const itemsPerPage = 5; // Choose the number of items to display per page
 
   const [sortOrder, setSortOrder] = useState({
     field: "",
@@ -150,6 +151,17 @@ export default function Dashboard() {
     }
   };
 
+  // Function to handle changes in selected GPA categories
+  const handleGpaCategoryChange = (category) => {
+    if (selectedGpaCategories.includes(category)) {
+      // If the category is already selected, remove it
+      setSelectedGpaCategories(selectedGpaCategories.filter(item => item !== category));
+    } else {
+      // If the category is not selected, add it
+      setSelectedGpaCategories([...selectedGpaCategories, category]);
+    }
+  };
+
   const handleStatusChange = (event: any) => {
     setSelectedStatus(event.target.value);
   };
@@ -165,10 +177,32 @@ export default function Dashboard() {
     };
   }, {});
 
+  const gpaCategory = {
+    "C": "Cumlaude (3.50 - 3.79)", // Assuming trackData is an array
+    "MC": "Magma Cumlaude (3.79 - 3.99)", 
+    "SC": "Summa Cumlaude (4.00)", 
+    // Add more categories as needed...
+  };
+
+   // Function to categorize GPA based on numeric value
+  const categorizeGpa = (gpa) => {
+    if (gpa >= 3.50 && gpa <= 3.79) {
+      return "C";
+    } if (gpa >= 3.79 && gpa <= 3.99) {
+      return "MC";
+    } if (gpa == 4.00) {
+      return "SC";
+    }  
+
+    return "Invalid"; // Handle other cases or return a default category
+  };
+
   console.log(trackDictionary);
 
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
+
+    console.log(uploadedData);
 
     const newTrackData = Object.keys(countByTrack(data)).map(
       (track, index) => ({
@@ -224,6 +258,27 @@ export default function Dashboard() {
       );
     }
 
+    if (selectedGpaCategories.length > 0) {
+      newFilteredData = newFilteredData.filter((item) => {
+        const category = categorizeGpa(parseFloat(item.GPA));
+        if (selectedGpaCategories.includes(category)) {
+          if (category === "C") {
+            return parseFloat(item.GPA) >= 3.50 && parseFloat(item.GPA) <= 3.79;
+          } else if (category === "MC") {
+            return parseFloat(item.GPA) >= 3.79 && parseFloat(item.GPA) <= 3.99;
+          } else if (category === "SC") {
+            return parseFloat(item.GPA) === 4.00;
+          }
+        }
+        return false; // Return false for other categories not selected
+      });
+    }
+    
+    // const filteredTableData = yourTableData.filter(item => {
+    //   const category = categorizeGpa(item.gpa); // Categorize GPA
+    //   return selectedGpaCategories.includes(category); // Check if category is selected
+    // });
+
     // Apply filter by status
     if (selectedStatus !== "") {
       newFilteredData = newFilteredData.filter(
@@ -247,6 +302,7 @@ export default function Dashboard() {
     selectedStatus,
     selectedEnrollment,
     uploadedData,
+    selectedGpaCategories,
     sortOrder,
   ]);
 
@@ -511,29 +567,51 @@ export default function Dashboard() {
                   )}
 
                   {selectedGPAVis === "Bar Chart" && (
-                    <BarChart width={400} height={400} data={gpaData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="category" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#079bde" />
-                    </BarChart>
+                    <>
+                      <BarChart width={400} height={400} data={gpaData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="category" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#079bde" />
+                      </BarChart>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(gpaCategory).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
             </div>
             <div className="w-full bg-white rounded-xl max-h-[90vh] overflow-scroll px-[2vw] py-[3vh]">
-              <h2 className="text-2xl font-semibold">Students Data</h2>
-              <div className="flex flex-row gap-x-1">
-                <div className="pt-[1vh] pb-[2vh]">
-                  <button
-                    onClick={handleFilterClick}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md"
-                  >
-                    Filter
-                  </button>
+              <div className="sticky top-0 left-0 z-10 bg-white">
+                <h2 className="text-2xl font-semibold">Students Data</h2>
+                <div className="flex flex-row gap-x-1">
+                  <div className="pt-[1vh] pb-[2vh]">
+                    <button
+                      onClick={handleFilterClick}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                    >
+                      Filter
+                    </button>
+                  </div>
                 </div>
               </div>
+
               <table className="table-auto border border-collapse">
                 <thead>
                   <tr>
@@ -796,6 +874,26 @@ export default function Dashboard() {
                       {program}
                     </label>
                   </div>
+                ))}
+              </div>
+
+              <div>
+                <h2 className="text-md font-semibold mb-2">
+                  GPA Index
+                </h2>
+                {Object.entries(gpaCategory).map(([program, value], index) => (
+                  <div key={index} className="mb-2">
+                    <input
+                      type="checkbox"
+                      id={program}
+                      checked={selectedGpaCategories.includes(program)}
+                      onChange={() => handleGpaCategoryChange(program)}
+                    />
+                    <label htmlFor={program} className="ml-2">
+                      {value}
+                    </label>
+                  </div>
+                
                 ))}
               </div>
 

@@ -31,19 +31,19 @@ export const countByTrackID = (
 
 export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
   const categorizedData = {
-    "<2.5": 0,
-    "2.5-3": 0,
-    ">3": 0,
+    "C": 0,
+    "MC": 0,
+    "SC": 0,
   };
 
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
-    if (gpa < 2.5) {
-      categorizedData["<2.5"] += 1;
-    } else if (gpa >= 2.5 && gpa <= 3) {
-      categorizedData["2.5-3"] += 1;
+    if (gpa >= 3.5 && gpa <= 3.79) {
+      categorizedData["C"] += 1;
+    } else if (gpa >= 3.8 && gpa <= 3.99) {
+      categorizedData["MC"] += 1;
     } else {
-      categorizedData[">3"] += 1;
+      categorizedData["SC"] += 1;
     }
   });
 
@@ -55,25 +55,25 @@ export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
 
 export const categorizeByGPAPie = (data: InternshipData[]): GpaPieData[] => {
   const categorizedData = {
-    "<2.5": 0,
-    "2.5-3": 0,
-    ">3": 0,
+    "Cumlaude (3.50 - 3.79)": 0,
+    "Magma Cumlaude (3.80 - 3.99)": 0,
+    "Summa Cumlaude (4.00)": 0,
   };
 
   const colors = {
-    "<2.5": "#079bde",
-    "2.5-3": "#d12318",
-    ">3": "#f08700",
+    "Cumlaude (3.50 - 3.79)": "#079bde",
+    "Magma Cumlaude (3.80 - 3.99)": "#d12318",
+    "Summa Cumlaude (4.00)": "#f08700",
   };
 
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
-      categorizedData["<2.5"] += 1;
+      categorizedData["Cumlaude (3.50 - 3.79)"] += 1;
     } else if (gpa >= 2.5 && gpa <= 3) {
-      categorizedData["2.5-3"] += 1;
-    } else {
-      categorizedData[">3"] += 1;
+      categorizedData["Magma Cumlaude (3.80 - 3.99)"] += 1;
+    } else if(gpa == 4.0) {
+      categorizedData["Summa Cumlaude (4.00)"] += 1;
     }
   });
 
