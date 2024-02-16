@@ -54,6 +54,21 @@ const Sidebar = () => {
         </Link>
       </div>
 
+      <div>
+        <Link href="/student_list">
+          <div className="menu-container">
+            <div
+              className={`menu-item ${
+                activeMenu === "student_list" ? "active" : ""
+              }`}
+              onClick={() => handleMenuClick("student_list")}
+            >
+              Student List
+            </div>
+          </div>
+        </Link>
+      </div>
+
       {/* Logout */}
       <div className="logout-container">
         <Link href="/">
