@@ -1,29 +1,39 @@
-"use client"
+"use client";
 // Import necessary libraries
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { signOut } from 'next-auth/react';
-import { redirect, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { redirect, usePathname, useRouter } from "next/navigation";
 
 // Sidebar component
 const Sidebar = () => {
   const router = useRouter();
-  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const pathName = usePathname();
+  const [activeMenu, setActiveMenu] = useState("");
 
   const handleMenuClick = async (menu) => {
+    console.log(menu);
     setActiveMenu(menu);
-  
+
     // Add logic for menu click
     if (menu === "logout") {
       // Sign out and redirect to the login page without reloading
       await signOut().then(() => {
-        router.replace('/');
+        router.replace("/");
       });
     } else {
       // Handle other menu items
     }
-  };  
+  };
+
+  useEffect(() => {
+    if (pathName === "/dashboard") {
+      setActiveMenu("dashboard");
+    } else if (pathName === "/student_list") {
+      setActiveMenu("student_list");
+    }
+  }, []);
 
   return (
     <div className="sidebar">
@@ -46,7 +56,6 @@ const Sidebar = () => {
               className={`menu-item ${
                 activeMenu === "dashboard" ? "active" : ""
               }`}
-              onClick={() => handleMenuClick("dashboard")}
             >
               Dashboard
             </div>
@@ -61,7 +70,6 @@ const Sidebar = () => {
               className={`menu-item ${
                 activeMenu === "student_list" ? "active" : ""
               }`}
-              onClick={() => handleMenuClick("student_list")}
             >
               Student List
             </div>

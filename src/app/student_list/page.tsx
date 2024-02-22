@@ -134,14 +134,6 @@ export default function Dashboard() {
     setSelectedArea(event.target.value);
   };
 
-  const handleTrackVisChange = (event: any) => {
-    setSelectedTrackVis(event.target.value);
-  };
-
-  const handleGPAVisChange = (event: any) => {
-    setSelectedGPAVis(event.target.value);
-  };
-
   const handleAcadChange = (program) => {
     // Toggle the selected program in the array
     if (selectedAcads.includes(program)) {
@@ -155,7 +147,9 @@ export default function Dashboard() {
   const handleGpaCategoryChange = (category) => {
     if (selectedGpaCategories.includes(category)) {
       // If the category is already selected, remove it
-      setSelectedGpaCategories(selectedGpaCategories.filter(item => item !== category));
+      setSelectedGpaCategories(
+        selectedGpaCategories.filter((item) => item !== category)
+      );
     } else {
       // If the category is not selected, add it
       setSelectedGpaCategories([...selectedGpaCategories, category]);
@@ -178,21 +172,23 @@ export default function Dashboard() {
   }, {});
 
   const gpaCategory = {
-    "C": "Cumlaude (3.50 - 3.79)", // Assuming trackData is an array
-    "MC": "Magma Cumlaude (3.79 - 3.99)", 
-    "SC": "Summa Cumlaude (4.00)", 
+    C: "Cumlaude (3.50 - 3.79)", // Assuming trackData is an array
+    MC: "Magma Cumlaude (3.79 - 3.99)",
+    SC: "Summa Cumlaude (4.00)",
     // Add more categories as needed...
   };
 
-   // Function to categorize GPA based on numeric value
+  // Function to categorize GPA based on numeric value
   const categorizeGpa = (gpa) => {
-    if (gpa >= 3.50 && gpa <= 3.79) {
+    if (gpa >= 3.5 && gpa <= 3.79) {
       return "C";
-    } if (gpa >= 3.79 && gpa <= 3.99) {
+    }
+    if (gpa >= 3.79 && gpa <= 3.99) {
       return "MC";
-    } if (gpa == 4.00) {
+    }
+    if (gpa == 4.0) {
       return "SC";
-    }  
+    }
 
     return "Invalid"; // Handle other cases or return a default category
   };
@@ -263,17 +259,17 @@ export default function Dashboard() {
         const category = categorizeGpa(parseFloat(item.GPA));
         if (selectedGpaCategories.includes(category)) {
           if (category === "C") {
-            return parseFloat(item.GPA) >= 3.50 && parseFloat(item.GPA) <= 3.79;
+            return parseFloat(item.GPA) >= 3.5 && parseFloat(item.GPA) <= 3.79;
           } else if (category === "MC") {
             return parseFloat(item.GPA) >= 3.79 && parseFloat(item.GPA) <= 3.99;
           } else if (category === "SC") {
-            return parseFloat(item.GPA) === 4.00;
+            return parseFloat(item.GPA) === 4.0;
           }
         }
         return false; // Return false for other categories not selected
       });
     }
-    
+
     // const filteredTableData = yourTableData.filter(item => {
     //   const category = categorizeGpa(item.gpa); // Categorize GPA
     //   return selectedGpaCategories.includes(category); // Check if category is selected
@@ -330,7 +326,7 @@ export default function Dashboard() {
         <div className="py-[3vh] px-[3vw] bg-white flex rounded-xl">
           <div className="py-[3vh] flex flex-col gap-y-[3vh]">
             <div className="header bg-white flex">
-              <p className="text-4xl font-bold mr-10">Dashboard</p>
+              <p className="text-4xl font-bold mr-10">Students List</p>
 
               {/* semester */}
               <div className="mr-5">
@@ -385,9 +381,9 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-            
+
             <div className="w-full bg-white rounded-xl max-h-[90vh] overflow-scroll px-[2vw] py-[3vh] mt-5">
-              <div className="sticky top-0 left-0 z-10 bg-white">
+              <div className="top-0 left-0 z-10 bg-white">
                 <h2 className="text-2xl font-semibold">Students Data</h2>
                 <div className="flex flex-row gap-x-1">
                   <div className="pt-[1vh] pb-[2vh]">
@@ -667,9 +663,7 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <h2 className="text-md font-semibold mb-2">
-                  GPA Index
-                </h2>
+                <h2 className="text-md font-semibold mb-2">GPA Index</h2>
                 {Object.entries(gpaCategory).map(([program, value], index) => (
                   <div key={index} className="mb-2">
                     <input
@@ -682,7 +676,6 @@ export default function Dashboard() {
                       {value}
                     </label>
                   </div>
-                
                 ))}
               </div>
 

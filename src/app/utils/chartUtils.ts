@@ -1,7 +1,12 @@
 // chartUtils.ts
 
 import { InternshipData } from "../models/InternshipData";
-import { GpaChartData, GpaPieData, TrackBarData, TrackChartData } from "../types/ChartData";
+import {
+  GpaChartData,
+  GpaPieData,
+  TrackBarData,
+  TrackChartData,
+} from "../types/ChartData";
 
 export const countByTrack = (
   data: InternshipData[]
@@ -31,19 +36,22 @@ export const countByTrackID = (
 
 export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
   const categorizedData = {
-    "C": 0,
-    "MC": 0,
-    "SC": 0,
+    "<2.5": 0,
+    "2.5-3": 0,
+    "3-3.5": 0,
+    ">3.5": 0,
   };
 
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
-    if (gpa >= 3.5 && gpa <= 3.79) {
-      categorizedData["C"] += 1;
-    } else if (gpa >= 3.8 && gpa <= 3.99) {
-      categorizedData["MC"] += 1;
+    if (gpa < 2.5) {
+      categorizedData["<2.5"] += 1;
+    } else if (gpa >= 2.5 && gpa < 3) {
+      categorizedData["2.5-3"] += 1;
+    } else if (gpa >= 3 && gpa <= 3.5) {
+      categorizedData["3-3.5"] += 1;
     } else {
-      categorizedData["SC"] += 1;
+      categorizedData[">3.5"] += 1;
     }
   });
 
@@ -55,25 +63,29 @@ export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
 
 export const categorizeByGPAPie = (data: InternshipData[]): GpaPieData[] => {
   const categorizedData = {
-    "Cumlaude (3.50 - 3.79)": 0,
-    "Magma Cumlaude (3.80 - 3.99)": 0,
-    "Summa Cumlaude (4.00)": 0,
+    "<2.5": 0,
+    "2.5-3": 0,
+    "3-3.5": 0,
+    ">3.5": 0,
   };
 
   const colors = {
-    "Cumlaude (3.50 - 3.79)": "#079bde",
-    "Magma Cumlaude (3.80 - 3.99)": "#d12318",
-    "Summa Cumlaude (4.00)": "#f08700",
+    "<2.5": "#079bde",
+    "2.5-3": "#d12318",
+    "3-3.5": "#f769ff",
+    ">3.5": "#f08700",
   };
 
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
-      categorizedData["Cumlaude (3.50 - 3.79)"] += 1;
-    } else if (gpa >= 2.5 && gpa <= 3) {
-      categorizedData["Magma Cumlaude (3.80 - 3.99)"] += 1;
-    } else if(gpa == 4.0) {
-      categorizedData["Summa Cumlaude (4.00)"] += 1;
+      categorizedData["<2.5"] += 1;
+    } else if (gpa >= 2.5 && gpa < 3) {
+      categorizedData["2.5-3"] += 1;
+    } else if (gpa >= 3 && gpa <= 3.5) {
+      categorizedData["3-3.5"] += 1;
+    } else {
+      categorizedData[">3.5"] += 1;
     }
   });
 
