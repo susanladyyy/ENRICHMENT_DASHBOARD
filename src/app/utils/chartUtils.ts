@@ -1,12 +1,7 @@
 // chartUtils.ts
 
 import { InternshipData } from "../models/InternshipData";
-import {
-  GpaChartData,
-  GpaPieData,
-  TrackBarData,
-  TrackChartData,
-} from "../types/ChartData";
+import { PieData, BarData } from "../types/ChartData";
 
 export const countByTrack = (
   data: InternshipData[]
@@ -34,14 +29,21 @@ export const countByTrackID = (
   return idCounts;
 };
 
-export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
-  const categorizedData = {
-    "<2.5": 0,
-    "2.5-3": 0,
-    "3-3.5": 0,
-    ">3.5": 0,
-  };
+const categorizedData = {
+  "<2.5": 0,
+  "2.5-3": 0,
+  "3-3.5": 0,
+  ">3.5": 0,
+};
 
+const colors = {
+  "<2.5": "#079bde",
+  "2.5-3": "#d12318",
+  "3-3.5": "#f769ff",
+  ">3.5": "#f08700",
+};
+
+export const categorizeByGPA = (data: InternshipData[]): BarData[] => {
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
@@ -58,24 +60,11 @@ export const categorizeByGPA = (data: InternshipData[]): GpaChartData[] => {
   return Object.keys(categorizedData).map((category) => ({
     category,
     count: categorizedData[category],
+    color: colors[category],
   }));
 };
 
-export const categorizeByGPAPie = (data: InternshipData[]): GpaPieData[] => {
-  const categorizedData = {
-    "<2.5": 0,
-    "2.5-3": 0,
-    "3-3.5": 0,
-    ">3.5": 0,
-  };
-
-  const colors = {
-    "<2.5": "#079bde",
-    "2.5-3": "#d12318",
-    "3-3.5": "#f769ff",
-    ">3.5": "#f08700",
-  };
-
+export const categorizeByGPAPie = (data: InternshipData[]): PieData[] => {
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
@@ -107,4 +96,17 @@ export const countByCampus = (
   });
 
   return campusCounts;
+};
+
+export const countByProgram = (
+  data: InternshipData[]
+): Record<string, number> => {
+  const programCounts: Record<string, number> = {};
+
+  data.forEach((item) => {
+    const program = item.ACADEMIC_PROGRAM;
+    programCounts[program] = (programCounts[program] || 0) + 1;
+  });
+
+  return programCounts;
 };

@@ -1,22 +1,11 @@
-export interface TrackChartData {
+export interface PieData {
   name: string;
   value: number;
   color: string;
 }
 
-export interface TrackBarData {
+export interface BarData {
   category: string;
   count: number;
   color: string;
-}
-
-export interface GpaPieData {
-  name: string;
-  value: number;
-  color: string;
-}
-
-export interface GpaChartData {
-  category: string;
-  count: number;
 }

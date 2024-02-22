@@ -2,33 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Uploader from "../components/Uploader";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  Tooltip,
-} from "recharts";
 import { InternshipData } from "../models/InternshipData";
-import {
-  categorizeByGPA,
-  categorizeByGPAPie,
-  countByCampus,
-  countByTrack,
-  countByTrackID,
-} from "../utils/chartUtils";
 import Sidebar from "../components/Sidebar";
-import {
-  GpaChartData,
-  GpaPieData,
-  TrackBarData,
-  TrackChartData,
-} from "../types/ChartData";
+
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 
@@ -50,20 +26,21 @@ export default function Dashboard() {
     "Mobile Application and Technology",
   ];
 
+  const campuses = [
+    "Binus Alam Sutera",
+    "Binus Kemanggisan",
+    "Binus Bandung",
+    "Binus Malang",
+  ];
+
   const statuses = ["Accepted", "Not Yet Accepted"];
   const enrollments = ["Enrolled", "Not Yet Enrolled"];
 
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
   const [filteredData, setFilteredData] = useState<InternshipData[]>([]);
-  const [trackData, setTrackData] = useState<TrackChartData[]>([]);
-  const [trackBarData, setTrackBarData] = useState<TrackBarData[]>([]);
-  const [gpaData, setGpaData] = useState<GpaChartData[]>([]);
-  const [gpaPieData, setGpaPieData] = useState<GpaPieData[]>([]);
-  const [campusData, setCampusData] = useState<Record<string, number>>();
+
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
-  const [selectedTrackVis, setSelectedTrackVis] = useState("Pie Chart");
-  const [selectedGPAVis, setSelectedGPAVis] = useState("Pie Chart");
   const [selectedAcads, setSelectedAcads] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedEnrollment, setEnrollmentStatus] = useState("");
@@ -164,13 +141,6 @@ export default function Dashboard() {
     setEnrollmentStatus(event.target.value);
   };
 
-  const trackDictionary = trackBarData.reduce((acc, entry, index) => {
-    return {
-      ...acc,
-      [entry.category]: trackData[index % trackData.length]?.name || "",
-    };
-  }, {});
-
   const gpaCategory = {
     C: "Cumlaude (3.50 - 3.79)", // Assuming trackData is an array
     MC: "Magma Cumlaude (3.79 - 3.99)",
@@ -193,39 +163,8 @@ export default function Dashboard() {
     return "Invalid"; // Handle other cases or return a default category
   };
 
-  console.log(trackDictionary);
-
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
-
-    console.log(uploadedData);
-
-    const newTrackData = Object.keys(countByTrack(data)).map(
-      (track, index) => ({
-        name: track,
-        value: countByTrack(data)[track],
-        color: legendColors[index % legendColors.length],
-      })
-    );
-    setTrackData(newTrackData);
-
-    const newTrackBarData = Object.keys(countByTrackID(data)).map(
-      (id, index) => ({
-        category: id,
-        count: countByTrackID(data)[id],
-        color: legendColors[index % legendColors.length],
-      })
-    );
-    setTrackBarData(newTrackBarData);
-
-    const newGpaPieData = categorizeByGPAPie(data);
-    setGpaPieData(newGpaPieData);
-
-    const newGpaData = categorizeByGPA(data);
-    setGpaData(newGpaData);
-
-    const campusCounts = countByCampus(data);
-    setCampusData(campusCounts);
   };
 
   const legendColors = [
@@ -240,9 +179,6 @@ export default function Dashboard() {
   if (status === "loading") {
     redirect("/");
   }
-
-  console.log(gpaPieData);
-  console.log(trackData);
 
   useEffect(() => {
     let newFilteredData = uploadedData;
@@ -324,36 +260,41 @@ export default function Dashboard() {
       </div>
       <div className="w-5/6 content bg-[#e1eef5] py-[3vh] px-[3vh] h-[100vh] overflow-scroll">
         <div className="py-[3vh] px-[3vw] bg-white flex rounded-xl">
-          <div className="py-[3vh] flex flex-col gap-y-[3vh]">
-            <div className="header bg-white flex">
-              <p className="text-4xl font-bold mr-10">Students List</p>
-
-              {/* semester */}
-              <div className="mr-5">
-                <select
-                  id="semesterSelect"
-                  value={selectedSemester}
-                  onChange={handleSemesterChange}
-                  className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
-                >
-                  <option value="">Select Semester</option>
-                  <option value="Semester(1)">Semester(1)</option>
-                  <option value="Semester(2)">Semester(2)</option>
-                </select>
+          <div className="w-full py-[3vh] flex flex-col gap-y-[3vh]">
+            <div className="w-full bg-white flex justify-between items-center">
+              <div className="w-1/2">
+                <p className="text-4xl font-bold mr-10">Student List</p>
               </div>
 
-              {/* campus area */}
-              <div className="mr-5">
-                <select
-                  id="areaSelect"
-                  value={selectedArea}
-                  onChange={handleAreaChange}
-                  className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
-                >
-                  <option value="">Select Area</option>
-                  <option value="Area(1)">Area(1)</option>
-                  <option value="Area(2)">Area(2)</option>
-                </select>
+              {/* semester */}
+              <div className="w-1/2 flex justify-end">
+                <div className="mr-5">
+                  <select
+                    id="semesterSelect"
+                    defaultValue={selectedSemester}
+                    onChange={handleSemesterChange}
+                    className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
+                  >
+                    <option value="">Select Semester</option>
+                    <option value="Semester(1)">Semester(1)</option>
+                    <option value="Semester(2)">Semester(2)</option>
+                  </select>
+                </div>
+
+                {/* campus area */}
+                <div className="mr-5">
+                  <select
+                    id="areaSelect"
+                    defaultValue={selectedArea}
+                    onChange={handleAreaChange}
+                    className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 inline-flex items-center mb-2"
+                  >
+                    <option value="">All Campuses</option>
+                    {campuses.map((area) => (
+                      <option value={area}>{area}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
             <div>
@@ -363,25 +304,6 @@ export default function Dashboard() {
         </div>
         {uploadedData && uploadedData.length > 0 && (
           <div className="w-full">
-            {campusData && (
-              <div className="flex flex-row gap-x-[2vh] pt-[2vh]">
-                {[
-                  "Binus Alam Sutera",
-                  "Binus Kemanggisan",
-                  "Binus Bandung",
-                  "Binus Malang",
-                ].map((campus) => (
-                  <div
-                    className="w-1/4 rounded-xl bg-white px-[2vw] py-[2vh] flex flex-col justify-center items-center text-center"
-                    key={campus}
-                  >
-                    <p className="text-xl">{campusData[campus] || "-"}</p>
-                    <p className="text-md font-semibold">{campus}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
             <div className="w-full bg-white rounded-xl max-h-[90vh] overflow-scroll px-[2vw] py-[3vh] mt-5">
               <div className="top-0 left-0 z-10 bg-white">
                 <h2 className="text-2xl font-semibold">Students Data</h2>
