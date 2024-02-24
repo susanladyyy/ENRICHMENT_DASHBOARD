@@ -9,3 +9,8 @@ export interface BarData {
   count: number;
   color: string;
 }
+
+export interface LineData {
+  name: string;
+  count: number;
+}

@@ -13,6 +13,8 @@ import {
   CartesianGrid,
   Legend,
   Tooltip,
+  LineChart,
+  Line,
 } from "recharts";
 import { InternshipData } from "../models/InternshipData";
 import {
@@ -24,7 +26,7 @@ import {
   countByTrackID,
 } from "../utils/chartUtils";
 import Sidebar from "../components/Sidebar";
-import { BarData, PieData } from "../types/ChartData";
+import { BarData, LineData, PieData } from "../types/ChartData";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 
@@ -59,13 +61,16 @@ export default function Dashboard() {
   const [uploadedData, setUploadedData] = useState<InternshipData[]>([]);
   const [trackData, setTrackData] = useState<PieData[]>([]);
   const [trackBarData, setTrackBarData] = useState<BarData[]>([]);
+  const [trackLineData, setTrackLineData] = useState<LineData[]>([]);
   const [gpaData, setGpaData] = useState<BarData[]>([]);
   const [gpaPieData, setGpaPieData] = useState<PieData[]>([]);
   const [campusData, setCampusData] = useState<Record<string, number>>();
   const [studentPieData, setStudentPieData] = useState<PieData[]>([]);
   const [studentBarData, setStudentBarData] = useState<BarData[]>([]);
+  const [studentLineData, setStudentLineData] = useState<LineData[]>([]);
   const [campusPieData, setCampusPieData] = useState<PieData[]>([]);
   const [campusBarData, setCampusBarData] = useState<BarData[]>([]);
+  const [campusLineData, setCampusLineData] = useState<LineData[]>([]);
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
 
@@ -118,8 +123,6 @@ export default function Dashboard() {
             (item) => item.ACADEMIC_PROGRAM === selectedProgram
           );
 
-    console.log("Filtered Data:", filteredData);
-
     // Calculate new track data
     const newTrackData = Object.keys(countByTrack(filteredData)).map(
       (track, index) => ({
@@ -129,8 +132,6 @@ export default function Dashboard() {
       })
     );
 
-    console.log("New Track Data:", newTrackData);
-
     // Calculate new track bar data
     const newTrackBarData = Object.keys(countByTrackID(filteredData)).map(
       (id, index) => ({
@@ -139,8 +140,6 @@ export default function Dashboard() {
         color: legendColors[index % legendColors.length],
       })
     );
-
-    console.log("New Track Bar Data:", newTrackBarData);
 
     // Update state variables
     setTrackData(newTrackData);
@@ -158,8 +157,6 @@ export default function Dashboard() {
         : uploadedData.filter(
             (item) => item.ACADEMIC_PROGRAM === selectedProgram
           );
-
-    console.log("Filtered Data:", filteredData);
 
     const newGpaPieData = categorizeByGPAPie(filteredData);
     setGpaPieData(newGpaPieData);
@@ -216,6 +213,14 @@ export default function Dashboard() {
     };
   }, {});
 
+  const campusDictionary = campusBarData.reduce((acc, entry, index) => {
+    return {
+      ...acc,
+      [entry.category]:
+      campusPieData[index % campusPieData.length]?.name || "",
+    };
+  }, {});
+
   function getInitialsOfWords(input: string): string {
     const words = input.trim().split(" ");
 
@@ -226,8 +231,6 @@ export default function Dashboard() {
 
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
-
-    console.log(uploadedData);
 
     const newProgramPieData = Object.keys(countByProgram(data)).map(
       (program, index) => ({
@@ -245,8 +248,17 @@ export default function Dashboard() {
         color: legendColors[index % legendColors.length],
       })
     );
-    console.log("Program Bar Data Uploaded: ", newProgramBarData);
+
     setStudentBarData(newProgramBarData);
+
+    const newProgramLineData = Object.keys(countByProgram(data)).map(
+      (program, index) => ({
+        name: getInitialsOfWords(program),
+        count: countByProgram(data)[program],
+      })
+    );
+
+    setStudentLineData(newProgramLineData);
 
     const newCampusPieData = Object.keys(countByCampus(data)).map(
       (campus, index) => ({
@@ -264,8 +276,17 @@ export default function Dashboard() {
         color: legendColors[index % legendColors.length],
       })
     );
-    console.log("Program Bar Data Uploaded: ", newProgramBarData);
+
     setCampusBarData(newCampusBarData);
+
+    const newCampusLineData = Object.keys(countByCampus(data)).map(
+      (campus, index) => ({
+        name: getInitialsOfWords(campus),
+        count: countByCampus(data)[campus],
+      })
+    );
+
+    setCampusLineData(newCampusLineData);
 
     const newTrackData = Object.keys(countByTrack(data)).map(
       (track, index) => ({
@@ -274,7 +295,7 @@ export default function Dashboard() {
         color: legendColors[index % legendColors.length],
       })
     );
-    console.log("Track Data Uploaded: ", newTrackData);
+
     setTrackData(newTrackData);
 
     const newTrackBarData = Object.keys(countByTrackID(data)).map(
@@ -285,6 +306,14 @@ export default function Dashboard() {
       })
     );
     setTrackBarData(newTrackBarData);
+
+    const newTrackLineData = Object.keys(countByTrackID(data)).map(
+      (id, index) => ({
+        name: id,
+        count: countByTrackID(data)[id],
+      })
+    );
+    setTrackLineData(newTrackLineData);
 
     const newGpaPieData = categorizeByGPAPie(data);
     setGpaPieData(newGpaPieData);
@@ -308,9 +337,6 @@ export default function Dashboard() {
   if (status === "loading") {
     redirect("/");
   }
-
-  console.log(gpaPieData);
-  console.log(trackData);
 
   return (
     <div className="flex flex-row">
@@ -474,6 +500,36 @@ export default function Dashboard() {
                       <Tooltip />
                     </PieChart>
                   )}
+
+                  {selectedStudentVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={studentLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(studentDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="w-full flex-1 rounded-xl flex flex-col bg-white px-[2vw] py-[3vh]">
@@ -556,6 +612,36 @@ export default function Dashboard() {
                         <Bar dataKey="count" fill="#079bde" />
                       </BarChart>
                     </div>
+                  )}
+
+                  {selectedCampusVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={campusLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(campusDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -673,6 +759,36 @@ export default function Dashboard() {
                       <Tooltip />
                     </PieChart>
                   )}
+
+                  {selectedTrackVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={trackLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(trackDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="w-full flex-1 rounded-xl flex flex-col bg-white px-[2vw] py-[3vh]">
@@ -756,6 +872,18 @@ export default function Dashboard() {
                       </BarChart>
                     </div>
                   )}
+
+                  {selectedGPAVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={gpaData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="category" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -800,6 +928,7 @@ export default function Dashboard() {
                       >
                         <option value="Pie Chart">Pie Chart</option>
                         <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
 
@@ -867,6 +996,7 @@ export default function Dashboard() {
                       >
                         <option value="Pie Chart">Pie Chart</option>
                         <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
 
@@ -934,6 +1064,7 @@ export default function Dashboard() {
                       >
                         <option value="Pie Chart">Pie Chart</option>
                         <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
                   </div>
@@ -981,6 +1112,7 @@ export default function Dashboard() {
                       >
                         <option value="Pie Chart">Pie Chart</option>
                         <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
                   </div>

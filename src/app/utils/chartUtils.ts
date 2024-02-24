@@ -1,7 +1,7 @@
 // chartUtils.ts
 
 import { InternshipData } from "../models/InternshipData";
-import { PieData, BarData } from "../types/ChartData";
+import { PieData, BarData, LineData } from "../types/ChartData";
 
 export const countByTrack = (
   data: InternshipData[]
