@@ -932,25 +932,27 @@ export default function Dashboard() {
                       </select>
                     </div>
 
-                    <div>
-                      <h2 className="text-md font-semibold mb-2">
-                        Filter by Academic Program
-                      </h2>
-                      <select
-                        id="visSelect"
-                        value={trackByProgram}
-                        onChange={handleProgramTrackChange}
-                        className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
-                      >
-                        <option value="All Programs">All Programs</option>
+                    { selectedTrackVis !== "Line Chart" && (
+                      <div>
+                        <h2 className="text-md font-semibold mb-2">
+                          Filter by Academic Program
+                        </h2>
+                        <select
+                          id="visSelect"
+                          value={trackByProgram}
+                          onChange={handleProgramTrackChange}
+                          className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                        >
+                          <option value="All Programs">All Programs</option>
 
-                        {programs.map((program, index) => (
-                          <option key={index} value={program}>
-                            {program}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                          {programs.map((program, index) => (
+                            <option key={index} value={program}>
+                              {program}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1000,25 +1002,27 @@ export default function Dashboard() {
                       </select>
                     </div>
 
-                    <div>
-                      <h2 className="text-md font-semibold mb-2">
-                        Filter by Academic Program
-                      </h2>
-                      <select
-                        id="visSelect"
-                        value={gpaByProgram}
-                        onChange={handleGPATrackChange}
-                        className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
-                      >
-                        <option value="All Programs">All Programs</option>
+                    { selectedGPAVis !== "Line Chart" && (
+                      <div>
+                        <h2 className="text-md font-semibold mb-2">
+                          Filter by Academic Program
+                        </h2>
+                        <select
+                          id="visSelect"
+                          value={gpaByProgram}
+                          onChange={handleGPATrackChange}
+                          className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                        >
+                          <option value="All Programs">All Programs</option>
 
-                        {programs.map((program, index) => (
-                          <option key={index} value={program}>
-                            {program}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                          {programs.map((program, index) => (
+                            <option key={index} value={program}>
+                              {program}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
