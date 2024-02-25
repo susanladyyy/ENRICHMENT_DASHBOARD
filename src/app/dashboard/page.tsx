@@ -73,11 +73,13 @@ export default function Dashboard() {
   const [campusLineData, setCampusLineData] = useState<LineData[]>([]);
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
+  const [topCompanies, setTopCompanies] = useState<PieData[]>([])
 
   const [selectedTrackVis, setSelectedTrackVis] = useState("Pie Chart");
   const [selectedGPAVis, setSelectedGPAVis] = useState("Pie Chart");
   const [selectedStudentVis, setSelectedStudentVis] = useState("Pie Chart");
   const [selectedCampusVis, setSelectedCampusVis] = useState("Pie Chart");
+  const [selectedCompanyVis, setSelectedCompanyVis] = useState("Pie Chart");
 
   const [trackByProgram, setTrackByProgram] = useState("All Programs");
   const [gpaByProgram, setGpaByProgram] = useState("All Programs");
@@ -86,6 +88,9 @@ export default function Dashboard() {
   const [showGPAFilterDialog, setShowGPAFilterDialog] = useState(false);
   const [showStudentFilterDialog, setShowStudentFilterDialog] = useState(false);
   const [showCampusFilterDialog, setShowCampusFilterDialog] = useState(false);
+  const [showCompanyFilterDialog, setShowCompanyFilterDialog] = useState(false);
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FFA5A5', '#00BFFF', '#FF6347', '#FF69B4', '#90EE90'];
 
   const handleSemesterChange = (event: any) => {
     setSelectedSemester(event.target.value);
@@ -105,6 +110,10 @@ export default function Dashboard() {
 
   const handleStudentVisChange = (event: any) => {
     setSelectedStudentVis(event.target.value);
+  };
+
+  const handleCompanyVisChange = (event: any) => {
+    setSelectedCompanyVis(event.target.value);
   };
 
   const handleCampusVisChange = (event: any) => {
@@ -186,6 +195,10 @@ export default function Dashboard() {
     setShowStudentFilterDialog(true);
   };
 
+  const handleCompanyFilterClick = () => {
+    setShowCompanyFilterDialog(true);
+  }
+
   const handleCloseStudentFilterDialog = () => {
     setShowStudentFilterDialog(false);
   };
@@ -196,6 +209,10 @@ export default function Dashboard() {
 
   const handleCloseCampusFilterDialog = () => {
     setShowCampusFilterDialog(false);
+  };
+
+  const handleCloseCompanyFilterDialog = () => {
+    setShowCompanyFilterDialog(false);
   };
 
   const trackDictionary = trackBarData.reduce((acc, entry, index) => {
@@ -229,8 +246,41 @@ export default function Dashboard() {
     return initials.join("");
   }
 
+  const countCompanies = (uploaded: InternshipData[]) => {
+    const companyCountMap: Record<string, number> = {};
+
+    uploaded.forEach((entry) => {
+      const company = entry.PARTNER_LECTURER;
+      if (company !== "-" && company !== "Binus University" && company !== undefined) {
+        companyCountMap[company] = (companyCountMap[company] || 0) + 1;
+      }
+    });
+
+    // Step 2: Sort the companies based on count in descending order
+    const sortedCompanies = Object.keys(companyCountMap).sort(
+      (a, b) => companyCountMap[b] - companyCountMap[a]
+    );
+
+    // Step 3: Select the top 10 companies
+    const top10Companies = sortedCompanies.slice(0, 10);
+
+    // Now top10Companies contains the top 10 companies where students are hired
+    console.log(top10Companies);
+
+    const top10 = sortedCompanies.slice(0, 10).map(
+      (company, index) => ({
+        name: company,
+        value: companyCountMap[company],
+        color: COLORS[index % COLORS.length],
+      })
+    );    
+
+    setTopCompanies(top10)
+  }
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
+
+    countCompanies(data);
 
     const newProgramPieData = Object.keys(countByProgram(data)).map(
       (program, index) => ({
@@ -337,6 +387,8 @@ export default function Dashboard() {
   if (status === "loading") {
     redirect("/");
   }
+
+  console.log(topCompanies)
 
   return (
     <div className="flex flex-row">
@@ -532,6 +584,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
+
               <div className="w-full flex-1 rounded-xl flex flex-col bg-white px-[2vw] py-[3vh]">
                 <div className="w-full flex flex-row justify-between items-center">
                   <h2 className="text-2xl font-semibold">Campus Chart</h2>
@@ -646,6 +699,153 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {/* top 10 companies */}
+            <div className="w-full flex flex-row items-stretch py-[2vh] gap-x-[2vh]">
+              <div className="w-full flex-1 rounded-xl bg-white flex flex-col px-[3vw] py-[3vh]">
+                <div className="w-full flex flex-row justify-between items-start">
+                  <div className="w-1/2 flex flex-col gap-y-2">
+                    <h2 className="text-2xl font-semibold">Top 10 Companies</h2>
+                    <p>by Academic Program</p>
+                  </div>
+                  <button
+                    onClick={handleCompanyFilterClick}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Modify
+                  </button>
+                </div>
+                <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
+                  {selectedCompanyVis === "Bar Chart" && (
+                    <div className="py-6">
+                      <BarChart width={450} height={500} data={studentBarData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="category" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#d12318" />
+                      </BarChart>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(studentDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedCompanyVis === "Pie Chart" && (
+                    <PieChart width={400} height={500}>
+                      {/* Data for the pie chart */}
+                      <Pie
+                        data={topCompanies}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label
+                        dataKey="value"
+                      >
+                        {/* Customizing the colors of each sector */}
+                        {topCompanies.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+
+                      {/* Adding legend and tooltip */}
+                      <Legend
+                        content={({ payload }) => (
+                          <ul
+                            style={{
+                              listStyle: "none",
+                              padding: 0,
+                              display: "flex",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {payload.map((entry, index) => (
+                              <li
+                                key={`legend-${index}`}
+                                style={{
+                                  marginRight: "20px",
+                                  marginBottom: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: entry.color,
+                                    marginRight: "8px",
+                                  }}
+                                />
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "#000" }}
+                                >
+                                  {entry.value} (
+                                  {
+                                    topCompanies.find(
+                                      (item) => item.name === entry.value
+                                    )?.value
+                                  }
+                                  )
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      />
+
+                      <Tooltip />
+                    </PieChart>
+                  )}
+
+                  {selectedCompanyVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={studentLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(studentDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="w-full flex flex-row items-stretch py-[2vh] gap-x-[2vh]">
               <div className="w-full flex-1 rounded-xl bg-white flex flex-col px-[3vw] py-[3vh]">
                 <div className="w-full flex flex-row justify-between items-start">
@@ -791,6 +991,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
+
               <div className="w-full flex-1 rounded-xl flex flex-col bg-white px-[2vw] py-[3vh]">
                 <div className="w-full flex flex-row justify-between items-center">
                   <h2 className="text-2xl font-semibold">GPA Chart</h2>
@@ -887,6 +1088,153 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
+
+            {/* top 10 Positions */}
+            <div className="w-full flex flex-row items-stretch py-[2vh] gap-x-[2vh]">
+              <div className="w-full flex-1 rounded-xl bg-white flex flex-col px-[3vw] py-[3vh]">
+                <div className="w-full flex flex-row justify-between items-start">
+                  <div className="w-1/2 flex flex-col gap-y-2">
+                    <h2 className="text-2xl font-semibold">Top 10 Positions</h2>
+                    <p>by Academic Program</p>
+                  </div>
+                  <button
+                    onClick={handleStudentFilterClick}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Modify
+                  </button>
+                </div>
+                <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
+                  {selectedStudentVis === "Bar Chart" && (
+                    <div className="py-6">
+                      <BarChart width={450} height={500} data={studentBarData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="category" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#d12318" />
+                      </BarChart>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(studentDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedStudentVis === "Pie Chart" && (
+                    <PieChart width={400} height={500}>
+                      {/* Data for the pie chart */}
+                      <Pie
+                        data={studentPieData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        label
+                        dataKey="value"
+                      >
+                        {/* Customizing the colors of each sector */}
+                        {studentPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+
+                      {/* Adding legend and tooltip */}
+                      <Legend
+                        content={({ payload }) => (
+                          <ul
+                            style={{
+                              listStyle: "none",
+                              padding: 0,
+                              display: "flex",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {payload.map((entry, index) => (
+                              <li
+                                key={`legend-${index}`}
+                                style={{
+                                  marginRight: "20px",
+                                  marginBottom: "8px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: "20px",
+                                    height: "20px",
+                                    backgroundColor: entry.color,
+                                    marginRight: "8px",
+                                  }}
+                                />
+                                <span
+                                  className="text-xs"
+                                  style={{ color: "#000" }}
+                                >
+                                  {entry.value} (
+                                  {
+                                    studentPieData.find(
+                                      (item) => item.name === entry.value
+                                    )?.value
+                                  }
+                                  )
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      />
+
+                      <Tooltip />
+                    </PieChart>
+                  )}
+
+                  {selectedStudentVis === "Line Chart" && (
+                    <>
+                      <LineChart width={600} height={300} data={studentLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Tooltip />
+                        <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                      </LineChart>
+
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          marginLeft: "20px",
+                        }}
+                      >
+                        {Object.entries(studentDictionary).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <p>
+                                {key}: {value}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {showTrackFilterDialog && (
               <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
                 <div className="bg-white w-1/4 p-8 rounded-md relative">
@@ -1027,6 +1375,56 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+
+            {showCompanyFilterDialog && (
+              <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                <div className="bg-white w-1/4 p-8 rounded-md relative">
+                  {/* Close button */}
+                  <button
+                    onClick={handleCloseCompanyFilterDialog}
+                    className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      className="h-6 w-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Filter options */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Modify Chart</h3>
+
+                    {/* Add checkboxes for each program */}
+                    <div>
+                      <h2 className="text-md font-semibold mb-2">
+                        Visualization Type
+                      </h2>
+                      <select
+                        id="visSelect"
+                        value={selectedCompanyVis}
+                        onChange={handleCompanyVisChange}
+                        className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                      >
+                        <option value="Pie Chart">Pie Chart</option>
+                        <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {showStudentFilterDialog && (
               <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
                 <div className="bg-white w-1/4 p-8 rounded-md relative">
