@@ -76,12 +76,16 @@ export default function Dashboard() {
   const [topCompanies, setTopCompanies] = useState<PieData[]>([])
   const [topCompaniesBar, setTopCompaniesBar] = useState<BarData[]>([])
   const [topCompaniesLine, setTopCompaniesLine] = useState<LineData[]>([])
+  const [topPositions, setTopPositions] = useState<PieData[]>([])
+  const [topPositionsBar, setTopPositionsBar] = useState<BarData[]>([])
+  const [topPositionsLine, setTopPositionsLine] = useState<LineData[]>([])
 
   const [selectedTrackVis, setSelectedTrackVis] = useState("Pie Chart");
   const [selectedGPAVis, setSelectedGPAVis] = useState("Pie Chart");
   const [selectedStudentVis, setSelectedStudentVis] = useState("Pie Chart");
   const [selectedCampusVis, setSelectedCampusVis] = useState("Pie Chart");
   const [selectedCompanyVis, setSelectedCompanyVis] = useState("Line Chart");
+  const [selectedPositionVis, setSelectedPositionVis] = useState("Line Chart");
 
   const [trackByProgram, setTrackByProgram] = useState("All Programs");
   const [gpaByProgram, setGpaByProgram] = useState("All Programs");
@@ -91,9 +95,10 @@ export default function Dashboard() {
   const [showStudentFilterDialog, setShowStudentFilterDialog] = useState(false);
   const [showCampusFilterDialog, setShowCampusFilterDialog] = useState(false);
   const [showCompanyFilterDialog, setShowCompanyFilterDialog] = useState(false);
+  const [showPositionFilterDialog, setShowPositionFilterDialog] = useState(false);
 
   const [companyDictionary, setCompanyDictionary] = useState([""]);
-  const [positionDictionary, setPositionDictionary] = useState([]);
+  const [positionDictionary, setPositionDictionary] = useState([""]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FFA5A5', '#00BFFF', '#FF6347', '#FF69B4', '#90EE90'];
 
@@ -123,6 +128,10 @@ export default function Dashboard() {
 
   const handleCampusVisChange = (event: any) => {
     setSelectedCampusVis(event.target.value);
+  };
+
+  const handlePositionVisChange = (event: any) => {
+    setSelectedPositionVis(event.target.value);
   };
 
   const handleProgramTrackChange = (event: any) => {
@@ -204,6 +213,10 @@ export default function Dashboard() {
     setShowCompanyFilterDialog(true);
   }
 
+  const handlePositionFilterClick = () => {
+    setShowPositionFilterDialog(true);
+  }
+
   const handleCloseStudentFilterDialog = () => {
     setShowStudentFilterDialog(false);
   };
@@ -218,6 +231,10 @@ export default function Dashboard() {
 
   const handleCloseCompanyFilterDialog = () => {
     setShowCompanyFilterDialog(false);
+  };
+
+  const handleClosePositionFilterDialog = () => {
+    setShowPositionFilterDialog(false);
   };
 
   const trackDictionary = trackBarData.reduce((acc, entry, index) => {
@@ -251,6 +268,14 @@ export default function Dashboard() {
     };
   }, {});
 
+  const posDictionary = topPositionsBar.reduce((acc, entry, index) => {
+    return {
+      ...acc,
+      [entry.category]:
+      positionDictionary[index % positionDictionary.length] || "",
+    };
+  }, {});
+
   function getInitialsOfWords(input: string): string {
     const words = input.trim().split(" ");
 
@@ -264,7 +289,7 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const company = entry.PARTNER_LECTURER;
-      if (company !== "-" && company !== "Binus University" && company !== undefined) {
+      if (company !== "-" && company.includes("Binus") === false && company !== undefined) {
         companyCountMap[company] = (companyCountMap[company] || 0) + 1;
       }
     });
@@ -329,10 +354,84 @@ export default function Dashboard() {
     setTopCompaniesBar(top10Bar)
     setTopCompaniesLine(top10Line)
   }
+
+  const countPositions = (uploaded: InternshipData[]) => {
+    const positionCountMap: Record<string, number> = {};
+
+    uploaded.forEach((entry) => {
+      const position = entry.POSITION_TOPIC;
+      if (position !== "-" && position !== undefined) {
+        positionCountMap[position] = (positionCountMap[position] || 0) + 1;
+      }
+    });
+
+    // Step 2: Sort the Positions based on count in descending order
+    const sortedPositions = Object.keys(positionCountMap).sort(
+      (a, b) => positionCountMap[b] - positionCountMap[a]
+    );
+
+    // Step 3: Select the top 10 Positions
+    const top10Positions = sortedPositions.slice(0, 10);
+    setPositionDictionary(top10Positions)
+
+    const top10Pie = sortedPositions.slice(0, 10).map(
+      (position, index) => ({
+        name: position,
+        value: positionCountMap[position],
+        color: COLORS[index % COLORS.length],
+      })
+    );    
+    
+    const top10Bar = sortedPositions.slice(0, 10).map(
+      (position, index) => {
+          // Remove words inside parentheses including the parentheses
+          let cleanedPosition = position.replace(/\s*\([^)]*\)\s*/g, "");
+  
+          // Remove 'PT.' if present and get initials of words
+          if (cleanedPosition.includes('PT')) {
+              cleanedPosition = cleanedPosition.replace('PT. ', '');
+          }
+  
+          const category: string = getInitialsOfWords(cleanedPosition);
+  
+          return {
+              category,
+              count: positionCountMap[position],
+              color: COLORS[index % COLORS.length],
+          };
+      }
+    );
+
+    const top10Line = sortedPositions.slice(0, 10).map(
+      (position) => {
+        // Remove words inside parentheses including the parentheses
+        let cleanedPosition = position.replace(/\s*\([^)]*\)\s*/g, "");
+
+        // Remove 'PT.' if present and get initials of words
+        if (cleanedPosition.includes('PT')) {
+          cleanedPosition = cleanedPosition.replace('PT. ', '');
+        }
+
+        const name: string = getInitialsOfWords(cleanedPosition);
+
+        return {
+            name,
+            count: positionCountMap[position],
+        };
+      }
+    );
+
+    setTopPositions(top10Pie)
+    setTopPositionsBar(top10Bar)
+    setTopPositionsLine(top10Line)
+  }
+
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
 
     countCompanies(data);
+
+    countPositions(data);
 
     const newProgramPieData = Object.keys(countByProgram(data)).map(
       (program, index) => ({
@@ -783,7 +882,7 @@ export default function Dashboard() {
                         style={{
                           display: "flex",
                           flexDirection: "column",
-                          marginLeft: "20px",
+                          marginLeft: "50px",
                         }}
                       >
                         {Object.entries(compDictionary).map(
@@ -1150,19 +1249,19 @@ export default function Dashboard() {
                 <div className="w-full flex flex-row justify-between items-start">
                   <div className="w-1/2 flex flex-col gap-y-2">
                     <h2 className="text-2xl font-semibold">Top 10 Positions</h2>
-                    <p>by Academic Program</p>
+                    {/* <p>by Academic Program</p> */}
                   </div>
                   <button
-                    onClick={handleStudentFilterClick}
+                    onClick={handlePositionFilterClick}
                     className="bg-blue-500 text-white px-4 py-2 rounded-md"
                   >
                     Modify
                   </button>
                 </div>
                 <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
-                  {selectedStudentVis === "Bar Chart" && (
+                  {selectedPositionVis === "Bar Chart" && (
                     <div className="py-6">
-                      <BarChart width={450} height={500} data={studentBarData}>
+                      <BarChart width={1200} height={500} data={topPositionsBar}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="category" />
                         <YAxis />
@@ -1173,10 +1272,10 @@ export default function Dashboard() {
                         style={{
                           display: "flex",
                           flexDirection: "column",
-                          marginLeft: "20px",
+                          marginLeft: "50px",
                         }}
                       >
-                        {Object.entries(studentDictionary).map(
+                        {Object.entries(posDictionary).map(
                           ([key, value]: any) => (
                             <div key={key}>
                               <p>
@@ -1189,11 +1288,11 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {selectedStudentVis === "Pie Chart" && (
+                  {selectedPositionVis === "Pie Chart" && (
                     <PieChart width={400} height={500}>
                       {/* Data for the pie chart */}
                       <Pie
-                        data={studentPieData}
+                        data={topPositions}
                         cx="50%"
                         cy="50%"
                         outerRadius={120}
@@ -1201,7 +1300,7 @@ export default function Dashboard() {
                         dataKey="value"
                       >
                         {/* Customizing the colors of each sector */}
-                        {studentPieData.map((entry, index) => (
+                        {topPositions.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -1241,7 +1340,7 @@ export default function Dashboard() {
                                 >
                                   {entry.value} (
                                   {
-                                    studentPieData.find(
+                                    topPositions.find(
                                       (item) => item.name === entry.value
                                     )?.value
                                   }
@@ -1257,9 +1356,9 @@ export default function Dashboard() {
                     </PieChart>
                   )}
 
-                  {selectedStudentVis === "Line Chart" && (
+                  {selectedPositionVis === "Line Chart" && (
                     <>
-                      <LineChart width={600} height={300} data={studentLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart width={1300} height={300} data={topPositionsLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
                         <YAxis />
                         <CartesianGrid strokeDasharray="3 3" />
@@ -1274,7 +1373,7 @@ export default function Dashboard() {
                           marginLeft: "20px",
                         }}
                       >
-                        {Object.entries(studentDictionary).map(
+                        {Object.entries(posDictionary).map(
                           ([key, value]: any) => (
                             <div key={key}>
                               <p>
@@ -1475,6 +1574,28 @@ export default function Dashboard() {
                         <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
+
+                    { selectedCompanyVis !== "Line Chart" && (
+                      <div>
+                        <h2 className="text-md font-semibold mb-2">
+                          Filter by Academic Program
+                        </h2>
+                        <select
+                          id="visSelect"
+                          value={trackByProgram}
+                          onChange={handleProgramTrackChange}
+                          className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                        >
+                          <option value="All Programs">All Programs</option>
+
+                          {programs.map((program, index) => (
+                            <option key={index} value={program}>
+                              {program}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1528,6 +1649,56 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
+
+            {showPositionFilterDialog && (
+              <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+                <div className="bg-white w-1/4 p-8 rounded-md relative">
+                  {/* Close button */}
+                  <button
+                    onClick={handleClosePositionFilterDialog}
+                    className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      className="h-6 w-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+
+                  {/* Filter options */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Modify Chart</h3>
+
+                    {/* Add checkboxes for each program */}
+                    <div>
+                      <h2 className="text-md font-semibold mb-2">
+                        Visualization Type
+                      </h2>
+                      <select
+                        id="visSelect"
+                        value={selectedPositionVis}
+                        onChange={handlePositionVisChange}
+                        className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                      >
+                        <option value="Pie Chart">Pie Chart</option>
+                        <option value="Bar Chart">Bar Chart</option>
+                        <option value="Line Chart">Line Chart</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {showCampusFilterDialog && (
               <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
                 <div className="bg-white w-1/4 p-8 rounded-md relative">
