@@ -89,6 +89,8 @@ export default function Dashboard() {
 
   const [trackByProgram, setTrackByProgram] = useState("All Programs");
   const [gpaByProgram, setGpaByProgram] = useState("All Programs");
+  const [companyByProgram, setCompanyByProgram] = useState("All Programs");
+  const [positionByProgram, setPositionByProgram] = useState("All Programs");
 
   const [showTrackFilterDialog, setShowTrackFilterDialog] = useState(false);
   const [showGPAFilterDialog, setShowGPAFilterDialog] = useState(false);
@@ -186,6 +188,28 @@ export default function Dashboard() {
 
     const newGpaData = categorizeByGPA(filteredData);
     setGpaData(newGpaData);
+  };
+
+  const handleCompanyTrackChange = (event: any) => {
+    setCompanyByProgram(event.target.value)
+
+    if(event.target.value === "All Programs") {
+      countCompanies(uploadedData)
+    }
+    else {
+      countCompaniesByProgram(uploadedData, event.target.value)
+    }
+  };
+
+  const handlePositionTrackChange = (event: any) => {
+    setPositionByProgram(event.target.value)
+
+    if(event.target.value === "All Programs") {
+      countPositions(uploadedData)
+    }
+    else {
+      countPositionsByProgram(uploadedData, event.target.value)
+    }
   };
 
   // filter each graph
@@ -355,12 +379,157 @@ export default function Dashboard() {
     setTopCompaniesLine(top10Line)
   }
 
+  const countCompaniesByProgram = (uploaded: InternshipData[], selectedProgram: string) => {
+    const companyCountMap: Record<string, number> = {};
+
+    uploaded.forEach((entry) => {
+      const company = entry.PARTNER_LECTURER;
+      const academicProgram = entry.ACADEMIC_PROGRAM;
+
+      if (company !== "-" && company.includes("Binus") === false && company !== undefined && academicProgram === selectedProgram) {
+        companyCountMap[company] = (companyCountMap[company] || 0) + 1;
+      }
+    });
+
+    // Step 2: Sort the companies based on count in descending order
+    const sortedCompanies = Object.keys(companyCountMap).sort(
+      (a, b) => companyCountMap[b] - companyCountMap[a]
+    );
+
+    // Step 3: Select the top 10 companies
+    const top10Companies = sortedCompanies.slice(0, 10);
+    setCompanyDictionary(top10Companies)
+
+    const top10Pie = sortedCompanies.slice(0, 10).map(
+      (company, index) => ({
+        name: company,
+        value: companyCountMap[company],
+        color: COLORS[index % COLORS.length],
+      })
+    );    
+    
+    const top10Bar = sortedCompanies.slice(0, 10).map(
+      (company, index) => {
+          // Remove words inside parentheses including the parentheses
+          let cleanedCompany = company.replace(/\s*\([^)]*\)\s*/g, "");
+  
+          // Remove 'PT.' if present and get initials of words
+          if (cleanedCompany.includes('PT')) {
+              cleanedCompany = cleanedCompany.replace('PT. ', '');
+          }
+  
+          const category: string = getInitialsOfWords(cleanedCompany);
+  
+          return {
+              category,
+              count: companyCountMap[company],
+              color: COLORS[index % COLORS.length],
+          };
+      }
+    );
+
+    const top10Line = sortedCompanies.slice(0, 10).map(
+      (company) => {
+        // Remove words inside parentheses including the parentheses
+        let cleanedCompany = company.replace(/\s*\([^)]*\)\s*/g, "");
+
+        // Remove 'PT.' if present and get initials of words
+        if (cleanedCompany.includes('PT')) {
+            cleanedCompany = cleanedCompany.replace('PT. ', '');
+        }
+
+        const name: string = getInitialsOfWords(cleanedCompany);
+
+        return {
+            name,
+            count: companyCountMap[company],
+        };
+      }
+    );
+
+    setTopCompanies(top10Pie)
+    setTopCompaniesBar(top10Bar)
+    setTopCompaniesLine(top10Line)
+  }
+
   const countPositions = (uploaded: InternshipData[]) => {
     const positionCountMap: Record<string, number> = {};
 
     uploaded.forEach((entry) => {
       const position = entry.POSITION_TOPIC;
       if (position !== "-" && position !== undefined) {
+        positionCountMap[position] = (positionCountMap[position] || 0) + 1;
+      }
+    });
+
+    // Step 2: Sort the Positions based on count in descending order
+    const sortedPositions = Object.keys(positionCountMap).sort(
+      (a, b) => positionCountMap[b] - positionCountMap[a]
+    );
+
+    // Step 3: Select the top 10 Positions
+    const top10Positions = sortedPositions.slice(0, 10);
+    setPositionDictionary(top10Positions)
+
+    const top10Pie = sortedPositions.slice(0, 10).map(
+      (position, index) => ({
+        name: position,
+        value: positionCountMap[position],
+        color: COLORS[index % COLORS.length],
+      })
+    );    
+    
+    const top10Bar = sortedPositions.slice(0, 10).map(
+      (position, index) => {
+          // Remove words inside parentheses including the parentheses
+          let cleanedPosition = position.replace(/\s*\([^)]*\)\s*/g, "");
+  
+          // Remove 'PT.' if present and get initials of words
+          if (cleanedPosition.includes('PT')) {
+              cleanedPosition = cleanedPosition.replace('PT. ', '');
+          }
+  
+          const category: string = getInitialsOfWords(cleanedPosition);
+  
+          return {
+              category,
+              count: positionCountMap[position],
+              color: COLORS[index % COLORS.length],
+          };
+      }
+    );
+
+    const top10Line = sortedPositions.slice(0, 10).map(
+      (position) => {
+        // Remove words inside parentheses including the parentheses
+        let cleanedPosition = position.replace(/\s*\([^)]*\)\s*/g, "");
+
+        // Remove 'PT.' if present and get initials of words
+        if (cleanedPosition.includes('PT')) {
+          cleanedPosition = cleanedPosition.replace('PT. ', '');
+        }
+
+        const name: string = getInitialsOfWords(cleanedPosition);
+
+        return {
+            name,
+            count: positionCountMap[position],
+        };
+      }
+    );
+
+    setTopPositions(top10Pie)
+    setTopPositionsBar(top10Bar)
+    setTopPositionsLine(top10Line)
+  }
+
+  const countPositionsByProgram = (uploaded: InternshipData[], acad: string) => {
+    const positionCountMap: Record<string, number> = {};
+
+    uploaded.forEach((entry) => {
+      const position = entry.POSITION_TOPIC;
+      const academicProgram = entry.ACADEMIC_PROGRAM
+      if (position !== "-" && position !== undefined && academicProgram === acad) {
         positionCountMap[position] = (positionCountMap[position] || 0) + 1;
       }
     });
@@ -859,7 +1028,9 @@ export default function Dashboard() {
                 <div className="w-full flex flex-row justify-between items-start">
                   <div className="w-1/2 flex flex-col gap-y-2">
                     <h2 className="text-2xl font-semibold">Top 10 Companies</h2>
-                    {/* <p>by Academic Program</p> */}
+                    { companyByProgram !== "All Programs" && (
+                      <p>by {companyByProgram}</p>
+                    )}
                   </div>
                   <button
                     onClick={handleCompanyFilterClick}
@@ -869,7 +1040,11 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
-                  {selectedCompanyVis === "Bar Chart" && (
+                  {selectedCompanyVis === "Bar Chart" && topCompaniesBar.length === 0 && (
+                    <div>No Data on {companyByProgram}</div>
+                  )}
+                
+                  {selectedCompanyVis === "Bar Chart" && topCompaniesBar.length !== 0 && (
                     <div className="py-6">
                       <BarChart width={1200} height={500} data={topCompaniesBar}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -898,7 +1073,11 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {selectedCompanyVis === "Pie Chart" && (
+                  {selectedCompanyVis === "Pie Chart" && topCompanies.length === 0 && (
+                    <div>No Data on {companyByProgram}</div>
+                  )}
+
+                  {selectedCompanyVis === "Pie Chart" && topCompanies.length !== 0 && (
                     <PieChart width={500} height={600}>
                       {/* Data for the pie chart */}
                       <Pie
@@ -967,7 +1146,11 @@ export default function Dashboard() {
                     </PieChart>
                   )}
 
-                  {selectedCompanyVis === "Line Chart" && (
+                  {selectedCompanyVis === "Line Chart" && topCompaniesLine.length === 0 && (
+                    <div>No Data on {companyByProgram}</div>
+                  )}
+
+                  {selectedCompanyVis === "Line Chart" && topCompaniesLine.length !== 0 && (
                     <>
                       <LineChart width={1300} height={300} data={topCompaniesLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
@@ -1259,7 +1442,11 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
-                  {selectedPositionVis === "Bar Chart" && (
+                  {selectedPositionVis === "Bar Chart" && topPositionsBar.length === 0 && (
+                    <div>No Data on {positionByProgram}</div>
+                  )}
+
+                  {selectedPositionVis === "Bar Chart" && topPositionsBar.length !== 0 && (
                     <div className="py-6">
                       <BarChart width={1200} height={500} data={topPositionsBar}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -1288,7 +1475,11 @@ export default function Dashboard() {
                     </div>
                   )}
 
-                  {selectedPositionVis === "Pie Chart" && (
+                  {selectedPositionVis === "Pie Chart" && topPositions.length === 0 && (
+                    <div>No Data on {positionByProgram}</div>
+                  )}
+
+                  {selectedPositionVis === "Pie Chart" && topPositions.length !== 0 && (
                     <PieChart width={400} height={500}>
                       {/* Data for the pie chart */}
                       <Pie
@@ -1356,7 +1547,11 @@ export default function Dashboard() {
                     </PieChart>
                   )}
 
-                  {selectedPositionVis === "Line Chart" && (
+                  {selectedPositionVis === "Line Chart" && topPositionsLine.length === 0 && (
+                    <div>No Data on {positionByProgram}</div>
+                  )}
+
+                  {selectedPositionVis === "Line Chart" && topPositionsLine.length !== 0 && (
                     <>
                       <LineChart width={1300} height={300} data={topPositionsLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
@@ -1582,13 +1777,18 @@ export default function Dashboard() {
                         </h2>
                         <select
                           id="visSelect"
-                          value={trackByProgram}
-                          onChange={handleProgramTrackChange}
+                          value={companyByProgram}
+                          onChange={handleCompanyTrackChange}
                           className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
                         >
                           <option value="All Programs">All Programs</option>
 
                           {programs.map((program, index) => (
+                            companyByProgram === program ? 
+                            <option key={index} value={program} selected>
+                              {program}
+                            </option>
+                            :
                             <option key={index} value={program}>
                               {program}
                             </option>
@@ -1694,6 +1894,28 @@ export default function Dashboard() {
                         <option value="Line Chart">Line Chart</option>
                       </select>
                     </div>
+
+                    { selectedPositionVis !== "Line Chart" && (
+                      <div>
+                        <h2 className="text-md font-semibold mb-2">
+                          Filter by Academic Program
+                        </h2>
+                        <select
+                          id="visSelect"
+                          value={positionByProgram}
+                          onChange={handlePositionTrackChange}
+                          className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
+                        >
+                          <option value="All Programs">All Programs</option>
+
+                          {programs.map((program, index) => (
+                            <option key={index} value={program}>
+                              {program}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
