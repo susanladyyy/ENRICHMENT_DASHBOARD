@@ -74,12 +74,14 @@ export default function Dashboard() {
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [topCompanies, setTopCompanies] = useState<PieData[]>([])
+  const [topCompaniesBar, setTopCompaniesBar] = useState<BarData[]>([])
+  const [topCompaniesLine, setTopCompaniesLine] = useState<LineData[]>([])
 
   const [selectedTrackVis, setSelectedTrackVis] = useState("Pie Chart");
   const [selectedGPAVis, setSelectedGPAVis] = useState("Pie Chart");
   const [selectedStudentVis, setSelectedStudentVis] = useState("Pie Chart");
   const [selectedCampusVis, setSelectedCampusVis] = useState("Pie Chart");
-  const [selectedCompanyVis, setSelectedCompanyVis] = useState("Pie Chart");
+  const [selectedCompanyVis, setSelectedCompanyVis] = useState("Line Chart");
 
   const [trackByProgram, setTrackByProgram] = useState("All Programs");
   const [gpaByProgram, setGpaByProgram] = useState("All Programs");
@@ -89,6 +91,9 @@ export default function Dashboard() {
   const [showStudentFilterDialog, setShowStudentFilterDialog] = useState(false);
   const [showCampusFilterDialog, setShowCampusFilterDialog] = useState(false);
   const [showCompanyFilterDialog, setShowCompanyFilterDialog] = useState(false);
+
+  const [companyDictionary, setCompanyDictionary] = useState([""]);
+  const [positionDictionary, setPositionDictionary] = useState([]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FFA5A5', '#00BFFF', '#FF6347', '#FF69B4', '#90EE90'];
 
@@ -238,6 +243,14 @@ export default function Dashboard() {
     };
   }, {});
 
+  const compDictionary = topCompaniesBar.reduce((acc, entry, index) => {
+    return {
+      ...acc,
+      [entry.category]:
+      companyDictionary[index % companyDictionary.length] || "",
+    };
+  }, {});
+
   function getInitialsOfWords(input: string): string {
     const words = input.trim().split(" ");
 
@@ -263,19 +276,58 @@ export default function Dashboard() {
 
     // Step 3: Select the top 10 companies
     const top10Companies = sortedCompanies.slice(0, 10);
+    setCompanyDictionary(top10Companies)
 
-    // Now top10Companies contains the top 10 companies where students are hired
-    console.log(top10Companies);
-
-    const top10 = sortedCompanies.slice(0, 10).map(
+    const top10Pie = sortedCompanies.slice(0, 10).map(
       (company, index) => ({
         name: company,
         value: companyCountMap[company],
         color: COLORS[index % COLORS.length],
       })
     );    
+    
+    const top10Bar = sortedCompanies.slice(0, 10).map(
+      (company, index) => {
+          // Remove words inside parentheses including the parentheses
+          let cleanedCompany = company.replace(/\s*\([^)]*\)\s*/g, "");
+  
+          // Remove 'PT.' if present and get initials of words
+          if (cleanedCompany.includes('PT')) {
+              cleanedCompany = cleanedCompany.replace('PT. ', '');
+          }
+  
+          const category: string = getInitialsOfWords(cleanedCompany);
+  
+          return {
+              category,
+              count: companyCountMap[company],
+              color: COLORS[index % COLORS.length],
+          };
+      }
+    );
 
-    setTopCompanies(top10)
+    const top10Line = sortedCompanies.slice(0, 10).map(
+      (company) => {
+        // Remove words inside parentheses including the parentheses
+        let cleanedCompany = company.replace(/\s*\([^)]*\)\s*/g, "");
+
+        // Remove 'PT.' if present and get initials of words
+        if (cleanedCompany.includes('PT')) {
+            cleanedCompany = cleanedCompany.replace('PT. ', '');
+        }
+
+        const name: string = getInitialsOfWords(cleanedCompany);
+
+        return {
+            name,
+            count: companyCountMap[company],
+        };
+      }
+    );
+
+    setTopCompanies(top10Pie)
+    setTopCompaniesBar(top10Bar)
+    setTopCompaniesLine(top10Line)
   }
   const handleDataUpload = (data: InternshipData[]) => {
     setUploadedData(data);
@@ -389,6 +441,8 @@ export default function Dashboard() {
   }
 
   console.log(topCompanies)
+  console.log(topCompaniesBar)
+  console.log(topCompaniesLine)
 
   return (
     <div className="flex flex-row">
@@ -706,7 +760,7 @@ export default function Dashboard() {
                 <div className="w-full flex flex-row justify-between items-start">
                   <div className="w-1/2 flex flex-col gap-y-2">
                     <h2 className="text-2xl font-semibold">Top 10 Companies</h2>
-                    <p>by Academic Program</p>
+                    {/* <p>by Academic Program</p> */}
                   </div>
                   <button
                     onClick={handleCompanyFilterClick}
@@ -718,7 +772,7 @@ export default function Dashboard() {
                 <div className="flex-1 h-full w-full flex flex-col justify-center items-center">
                   {selectedCompanyVis === "Bar Chart" && (
                     <div className="py-6">
-                      <BarChart width={450} height={500} data={studentBarData}>
+                      <BarChart width={1200} height={500} data={topCompaniesBar}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="category" />
                         <YAxis />
@@ -732,7 +786,7 @@ export default function Dashboard() {
                           marginLeft: "20px",
                         }}
                       >
-                        {Object.entries(studentDictionary).map(
+                        {Object.entries(compDictionary).map(
                           ([key, value]: any) => (
                             <div key={key}>
                               <p>
@@ -746,7 +800,7 @@ export default function Dashboard() {
                   )}
 
                   {selectedCompanyVis === "Pie Chart" && (
-                    <PieChart width={400} height={500}>
+                    <PieChart width={500} height={600}>
                       {/* Data for the pie chart */}
                       <Pie
                         data={topCompanies}
@@ -771,6 +825,7 @@ export default function Dashboard() {
                               padding: 0,
                               display: "flex",
                               flexWrap: "wrap",
+                              alignItems: "center"
                             }}
                           >
                             {payload.map((entry, index) => (
@@ -815,7 +870,7 @@ export default function Dashboard() {
 
                   {selectedCompanyVis === "Line Chart" && (
                     <>
-                      <LineChart width={600} height={300} data={studentLineData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart width={1300} height={300} data={topCompaniesLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
                         <YAxis />
                         <CartesianGrid strokeDasharray="3 3" />
@@ -830,7 +885,7 @@ export default function Dashboard() {
                           marginLeft: "20px",
                         }}
                       >
-                        {Object.entries(studentDictionary).map(
+                        {Object.entries(compDictionary).map(
                           ([key, value]: any) => (
                             <div key={key}>
                               <p>
