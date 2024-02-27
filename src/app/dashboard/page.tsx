@@ -313,7 +313,9 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const company = entry.PARTNER_LECTURER;
-      if (company !== "-" && company.includes("Binus") === false && company !== undefined) {
+      const trackId = entry.TRACK_ID;
+
+      if (company !== "-" && company.toLowerCase().includes("bina nusantara") === false && company.toLowerCase().includes("binus") === false && company !== undefined && trackId === "IN") {
         companyCountMap[company] = (companyCountMap[company] || 0) + 1;
       }
     });
@@ -386,7 +388,7 @@ export default function Dashboard() {
       const company = entry.PARTNER_LECTURER;
       const academicProgram = entry.ACADEMIC_PROGRAM;
 
-      if (company !== "-" && company.includes("Binus") === false && company !== undefined && academicProgram === selectedProgram) {
+      if (company !== "-" && company.toLowerCase().includes("bina nusantara") === false && company.toLowerCase().includes("binus") === false && company !== undefined && trackId === "IN") {
         companyCountMap[company] = (companyCountMap[company] || 0) + 1;
       }
     });
@@ -457,7 +459,9 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const position = entry.POSITION_TOPIC;
-      if (position !== "-" && position !== undefined) {
+      const trackId = entry.TRACK_ID;
+
+      if (position !== "-" && position !== undefined && trackId == "IN") {
         positionCountMap[position] = (positionCountMap[position] || 0) + 1;
       }
     });
@@ -528,8 +532,10 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const position = entry.POSITION_TOPIC;
-      const academicProgram = entry.ACADEMIC_PROGRAM
-      if (position !== "-" && position !== undefined && academicProgram === acad) {
+      const trackId = entry.TRACK_ID;
+      const academicProgram = entry.ACADEMIC_PROGRAM;
+      
+      if (position !== "-" && position !== undefined && academicProgram === acad && trackId === "IN") {
         positionCountMap[position] = (positionCountMap[position] || 0) + 1;
       }
     });
@@ -1046,7 +1052,7 @@ export default function Dashboard() {
                 
                   {selectedCompanyVis === "Bar Chart" && topCompaniesBar.length !== 0 && (
                     <div className="py-6">
-                      <BarChart width={1200} height={500} data={topCompaniesBar}>
+                      <BarChart width={1000} height={500} data={topCompaniesBar}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="category" />
                         <YAxis />
@@ -1152,7 +1158,7 @@ export default function Dashboard() {
 
                   {selectedCompanyVis === "Line Chart" && topCompaniesLine.length !== 0 && (
                     <>
-                      <LineChart width={1300} height={300} data={topCompaniesLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart width={1100} height={300} data={topCompaniesLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
                         <YAxis />
                         <CartesianGrid strokeDasharray="3 3" />
@@ -1448,7 +1454,7 @@ export default function Dashboard() {
 
                   {selectedPositionVis === "Bar Chart" && topPositionsBar.length !== 0 && (
                     <div className="py-6">
-                      <BarChart width={1200} height={500} data={topPositionsBar}>
+                      <BarChart width={1000} height={500} data={topPositionsBar}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="category" />
                         <YAxis />
@@ -1553,7 +1559,7 @@ export default function Dashboard() {
 
                   {selectedPositionVis === "Line Chart" && topPositionsLine.length !== 0 && (
                     <>
-                      <LineChart width={1300} height={300} data={topPositionsLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart width={1100} height={300} data={topPositionsLine} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                         <XAxis dataKey="name" />
                         <YAxis />
                         <CartesianGrid strokeDasharray="3 3" />
