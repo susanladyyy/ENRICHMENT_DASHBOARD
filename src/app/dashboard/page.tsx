@@ -1089,7 +1089,7 @@ export default function Dashboard() {
                     topCompaniesBar.length !== 0 && (
                       <div className="py-6">
                         <BarChart
-                          width={1200}
+                          width={1000}
                           height={500}
                           data={topCompaniesBar}
                         >
@@ -1203,7 +1203,7 @@ export default function Dashboard() {
                     topCompaniesLine.length !== 0 && (
                       <>
                         <LineChart
-                          width={1300}
+                          width={1100}
                           height={300}
                           data={topCompaniesLine}
                           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -1528,7 +1528,7 @@ export default function Dashboard() {
                     topPositionsBar.length !== 0 && (
                       <div className="py-6">
                         <BarChart
-                          width={1200}
+                          width={1000}
                           height={500}
                           data={topPositionsBar}
                         >
@@ -1641,7 +1641,7 @@ export default function Dashboard() {
                     topPositionsLine.length !== 0 && (
                       <>
                         <LineChart
-                          width={1300}
+                          width={1100}
                           height={300}
                           data={topPositionsLine}
                           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
