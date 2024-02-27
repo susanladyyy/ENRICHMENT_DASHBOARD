@@ -37,10 +37,10 @@ let categorizedData = {
 };
 
 const colors = {
-  "<2.5": "#079bde",
-  "2.5-3": "#d12318",
-  "3-3.5": "#f769ff",
-  ">3.5": "#f08700",
+  "<2.5": "#0088FE",
+  "2.5-3": "#00C49F",
+  "3-3.5": "#FFBB28",
+  ">3.5": "#FF8042",
 };
 
 export const categorizeByGPA = (data: InternshipData[]): BarData[] => {

@@ -175,7 +175,7 @@ export default function Dashboard() {
       (track, index) => ({
         name: track,
         value: countByTrack(filteredData)[track],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
 
@@ -184,7 +184,7 @@ export default function Dashboard() {
       (id, index) => ({
         category: id,
         count: countByTrackID(filteredData)[id],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
 
@@ -193,44 +193,34 @@ export default function Dashboard() {
     setTrackBarData(newTrackBarData);
   };
 
-  const handleGPAProgramChange = (event: any) => {
-    const selectedProgram = event.target.value;
-    setGpaByProgram(selectedProgram);
+  useEffect(() => {
+    // Filter the uploaded data based on the selected program
+    let filteredData =
+      gpaByProgram === "All Programs"
+        ? uploadedData
+        : uploadedData.filter((item) => item.ACADEMIC_PROGRAM === gpaByProgram);
 
     // Filter the uploaded data based on the selected program
-    const filteredData =
-      selectedProgram === "All Programs"
-        ? uploadedData
-        : uploadedData.filter(
-            (item) => item.ACADEMIC_PROGRAM === selectedProgram
-          );
+    filteredData =
+      gpaByTrack === "All Tracks"
+        ? filteredData
+        : filteredData.filter((item) => item.TRACK === gpaByTrack);
 
     const newGpaPieData = categorizeByGPAPie(filteredData);
     setGpaPieData(newGpaPieData);
 
     const newGpaData = categorizeByGPA(filteredData);
     setGpaData(newGpaData);
+  });
 
-    setGpaByTrack("All Tracks");
+  const handleGPAProgramChange = (event: any) => {
+    const selectedProgram = event.target.value;
+    setGpaByProgram(selectedProgram);
   };
 
   const handleGPATrackChange = (event: any) => {
     const selectedTrack = event.target.value;
     setGpaByTrack(selectedTrack);
-
-    // Filter the uploaded data based on the selected program
-    const filteredData =
-      selectedTrack === "All Tracks"
-        ? uploadedData
-        : uploadedData.filter((item) => item.TRACK === selectedTrack);
-
-    const newGpaPieData = categorizeByGPAPie(filteredData);
-    setGpaPieData(newGpaPieData);
-
-    const newGpaData = categorizeByGPA(filteredData);
-    setGpaData(newGpaData);
-
-    setGpaByProgram("All Programs");
   };
 
   const handleCompanyTrackChange = (event: any) => {
@@ -647,7 +637,7 @@ export default function Dashboard() {
       (program, index) => ({
         name: program,
         value: countByProgram(data)[program],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
     setStudentPieData(newProgramPieData);
@@ -656,7 +646,7 @@ export default function Dashboard() {
       (program, index) => ({
         category: getInitialsOfWords(program),
         count: countByProgram(data)[program],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
 
@@ -675,7 +665,7 @@ export default function Dashboard() {
       (campus, index) => ({
         name: campus,
         value: countByCampus(data)[campus],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
     setCampusPieData(newCampusPieData);
@@ -684,7 +674,7 @@ export default function Dashboard() {
       (campus, index) => ({
         category: getInitialsOfWords(campus),
         count: countByCampus(data)[campus],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
 
@@ -703,7 +693,7 @@ export default function Dashboard() {
       (track, index) => ({
         name: track,
         value: countByTrack(data)[track],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
 
@@ -713,7 +703,7 @@ export default function Dashboard() {
       (id, index) => ({
         category: id,
         count: countByTrackID(data)[id],
-        color: legendColors[index % legendColors.length],
+        color: COLORS[index % COLORS.length],
       })
     );
     setTrackBarData(newTrackBarData);
@@ -735,15 +725,6 @@ export default function Dashboard() {
     const campusCounts = countByCampus(data);
     setCampusData(campusCounts);
   };
-
-  const legendColors = [
-    "#079bde",
-    "#d12318",
-    "#f08700",
-    "#ffff00",
-    "#ff00ff",
-    "#69bcea",
-  ];
 
   if (status === "loading") {
     redirect("/");
@@ -1845,7 +1826,7 @@ export default function Dashboard() {
                             onChange={handleGPATrackChange}
                             className="border border-solid border-black text-black bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 inline-flex items-center mb-2"
                           >
-                            <option value="All Trac">All Tracks</option>
+                            <option value="All Tracks">All Tracks</option>
 
                             {tracks.map((track, index) => (
                               <option key={index} value={track}>
