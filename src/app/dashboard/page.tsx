@@ -353,10 +353,14 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const company = entry.PARTNER_LECTURER;
+      const trackId = entry.TRACK_ID;
+
       if (
         company !== "-" &&
-        company.includes("Binus") === false &&
-        company !== undefined
+        company.toLowerCase().includes("bina nusantara") === false &&
+        company.toLowerCase().includes("binus") === false &&
+        company !== undefined &&
+        trackId === "IN"
       ) {
         companyCountMap[company] = (companyCountMap[company] || 0) + 1;
       }
@@ -497,7 +501,9 @@ export default function Dashboard() {
 
     uploaded.forEach((entry) => {
       const position = entry.POSITION_TOPIC;
-      if (position !== "-" && position !== undefined) {
+      const trackId = entry.TRACK_ID;
+
+      if (position !== "-" && position !== undefined && trackId == "IN") {
         positionCountMap[position] = (positionCountMap[position] || 0) + 1;
       }
     });
