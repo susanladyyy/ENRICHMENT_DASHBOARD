@@ -29,7 +29,7 @@ export const countByTrackID = (
   return idCounts;
 };
 
-const categorizedData = {
+let categorizedData = {
   "<2.5": 0,
   "2.5-3": 0,
   "3-3.5": 0,
@@ -44,6 +44,13 @@ const colors = {
 };
 
 export const categorizeByGPA = (data: InternshipData[]): BarData[] => {
+  categorizedData = {
+    "<2.5": 0,
+    "2.5-3": 0,
+    "3-3.5": 0,
+    ">3.5": 0,
+  };
+
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
@@ -65,6 +72,13 @@ export const categorizeByGPA = (data: InternshipData[]): BarData[] => {
 };
 
 export const categorizeByGPAPie = (data: InternshipData[]): PieData[] => {
+  categorizedData = {
+    "<2.5": 0,
+    "2.5-3": 0,
+    "3-3.5": 0,
+    ">3.5": 0,
+  };
+
   data.forEach((item) => {
     const gpa = parseFloat(item.GPA);
     if (gpa < 2.5) {
